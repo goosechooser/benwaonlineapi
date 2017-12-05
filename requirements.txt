@@ -1,0 +1,16 @@
+flask
+flask-login
+gunicorn
+wtforms
+flask_sqlalchemy
+Alembic
+marshmallow
+marshmallow-jsonapi
+flask-restless
+requests
+pytest
+pytest-flask
+#git+git://github.com/jfinkels/flask-restless.git
+#cryptography
+--use-wheel --no-index --find-links=https://github.com/sfbahr/PyCrypto-Wheels/raw/master/pycrypto-2.6.1-cp35-none-win_amd64.whl pycrypto
+python-jose
