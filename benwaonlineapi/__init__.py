@@ -6,12 +6,12 @@ from config import app_config
 from benwaonlineapi.database import db
 from benwaonlineapi.api import api, manager
 
-def create_app(config=None):
+def create_app(config_name=None):
     """
     Returns the Flask app.
     """
     app = Flask(__name__)
-    app.config.from_object(app_config[config])
+    app.config.from_object(app_config[config_name])
 
     app.config.from_envvar('BENWAONLINEAPI_SETTINGS')
 
