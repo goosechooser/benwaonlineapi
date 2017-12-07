@@ -1,7 +1,9 @@
 """
 Contains any utility functions used by processors or the benwaonline frontend.
 """
+import requests
 from jose import jwt
+from flask import current_app
 from flask_restless import ProcessingException
 from flask_restless.views.base import catch_processing_exceptions
 
@@ -46,6 +48,11 @@ def verify_token(token, jwks, audience=API_AUDIENCE):
         return payload
 
     raise ProcessingException(title='invalid header', detail='unable to parse authentication token')
+
+def get_jwks():
+    jwksurl = requests.get(current_app.config['JWKS_URL'])
+    jwks = jwksurl.json()
+    return jwks
 
 def requires_scope(required_scope, token):
     unverified_claims = jwt.get_unverified_claims(token)
