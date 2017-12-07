@@ -7,7 +7,7 @@ from flask import Blueprint, request
 from flask_restless import APIManager
 
 # from benwaonlineapi.api import views, processors
-from benwaonlineapi.api import processors, util
+from benwaonlineapi.api import processors
 
 from benwaonlineapi.database import db
 from benwaonlineapi import models
@@ -16,20 +16,9 @@ from marshmallow import pprint
 
 api = Blueprint('api', __name__)
 
-def remove_id(data, **kw):
-    # Because marshmallow-jsonapi schemas REQUIRE id
-    # and default flask-restless deserializer throws a shitfit
-    # if theres a client generated id
-    try:
-        del data['data']['id']
-    except KeyError:
-        pass
-
-global_preprocessors = {'POST_RESOURCE': [remove_id, processors.api_auth_func]}
-                        # 'GET_COLLECTION': [processors.global_pre]}
-                        # 'DELETE_RESOURCE': [check_authorization]}
+global_preprocessors = {'POST_RESOURCE': [processors.remove_id, processors.authenticate]}
 user_preprocessors = {'POST_RESOURCE': [processors.username_preproc, processors.remove_token]}
-# postprocessors = {'GET_TO_MANY_RELATION': [comments_post]}
+tag_postprocessors = {'GET_COLLECTION': [processors.count]}
 
 manager = APIManager(flask_sqlalchemy_db=db, preprocessors=global_preprocessors)
 
@@ -40,7 +29,6 @@ users_api = manager.create_api(models.User, collection_name='users',
                                 methods=['GET', 'POST', 'DELETE', 'PATCH'],
                                 allow_to_many_replacement=True,
                                 preprocessors=user_preprocessors)
-                                # exclude=['user_id'])
 
 posts_api = manager.create_api(models.Post, collection_name='posts',
                                 methods=['GET', 'POST', 'PATCH'],
@@ -48,6 +36,7 @@ posts_api = manager.create_api(models.Post, collection_name='posts',
 
 tags_api = manager.create_api(models.Tag, collection_name='tags',
                                 methods=['GET', 'POST', 'PATCH'],
+                                postprocessors=tag_postprocessors,
                                 allow_to_many_replacement=True,
                                 allow_functions=True)
 

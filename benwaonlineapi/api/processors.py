@@ -1,11 +1,12 @@
-import requests
-from jose import jwt
 
-from flask import request, current_app
+from marshmallow import pprint
+
+from flask import request
 from flask_restless import ProcessingException
 from flask_restless.views.base import catch_processing_exceptions
 
-from benwaonlineapi.api.util import verify_token
+from benwaonlineapi import models
+from benwaonlineapi.util import verify_token, get_jwks
 
 AUTH0_DOMAIN = 'choosegoose.auth0.com'
 ALGORITHMS = ['RS256']
@@ -38,17 +39,36 @@ def get_token_header():
     token = parts[1]
     return token
 
-def api_auth_func(data=None, **kw):
+def authenticate(data=None, **kw):
     token = get_token_header()
     # cache this
-    jwksurl = requests.get('https://' + AUTH0_DOMAIN + '/.well-known/jwks.json')
-    jwks = jwksurl.json()
+    jwks = get_jwks()
     verified_token = verify_token(token, jwks)
     data['token'] = verified_token
 
+def remove_id(data, **kw):
+    # Because marshmallow-jsonapi schemas REQUIRE id
+    # and default flask-restless deserializer throws a shitfit
+    # if theres a client generated id
+    try:
+        del data['data']['id']
+    except KeyError:
+        pass
+
 def username_preproc(data=None, **kw):
+    ''' Preprocessor for username, used during a POST_RESOURCE of a User '''
     user_id = data['token']['sub'].split('|')[1]
     data['data']['attributes']['user_id'] = user_id
 
 def remove_token(data=None, **kw):
+    ''' Preprocessor to remove the authentication token '''
     data.pop('token', None)
+
+def count(result, filters, sort, group_by, single, **kw):
+    '''
+    Post-processor for GET_RESOURCE of tags.
+    Adds the number of posts containing the tag to the meta field.
+    '''
+    for tag in result['data']:
+        _id = int(tag['id'])
+        tag['meta'] = {'total': len(models.Tag.query.get(_id).posts)}
