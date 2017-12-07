@@ -1,29 +1,6 @@
-from datetime import datetime
-from marshmallow import post_load, pprint
+from marshmallow import post_load
 from marshmallow_jsonapi import Schema, fields
-from benwaonlineapi.models import User, Image, Preview, Comment, Post, Tag # Role,
-
-class TokenSchema(Schema):
-    id = fields.Int(dump_only=True)
-    value = fields.String()
-
-    class Meta:
-        type_ = 'tokens'
-        strict = True
-        # self_url = '/api/roles/{role_id}'
-        # self_url_kwargs = {'role_id': '<id>'}
-
-# class RoleSchema(Schema):
-#     id = fields.Int(dump_only=True)
-#     name = fields.String()
-#     description = fields.String()
-
-#     class Meta:
-#         type_ = 'roles'
-#         fields = ('id', 'name', 'description')
-#         strict = True
-#         self_url = '/api/roles/{role_id}'
-#         self_url_kwargs = {'role_id': '<id>'}
+from benwaonlineapi.models import User, Image, Preview, Comment, Post, Tag
 
 class PreviewSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -87,28 +64,25 @@ class CommentSchema(Schema):
         schema='PostSchema'
     )
 
-    @post_load
-    def make_comment(self, data):
-        return Comment(**data)
+    # @post_load
+    # def make_comment(self, data):
+    #     return Comment(**data)
 
 class UserSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.Int()
     username = fields.String()
     created_on = fields.DateTime()
-    user_id = fields.String()
-    # oauth_token = fields.String()
-    # oauth_token_secret = fields.String()
+    user_id = fields.String(dump_only=True)
     active = fields.Boolean()
-    # is_active = fields.Boolean()
 
     class Meta:
         type_ = 'users'
-        # fields = ('id', 'username', 'comments', 'posts')
         strict = True
         self_url = '/api/users/{user_id}'
         self_url_kwargs = {'user_id': '<id>'}
 
     comments = fields.Relationship(
+        dump_only=True,
         type_='comments',
         self_url = '/api/users/{user_id}/relationships/comments',
         self_url_kwargs = {'user_id': '<id>'},
@@ -120,6 +94,7 @@ class UserSchema(Schema):
     )
 
     posts = fields.Relationship(
+        dump_only=True,
         type_='posts',
         self_url = '/api/users/{user_id}/relationships/posts',
         self_url_kwargs = {'user_id': '<id>'},
@@ -135,7 +110,7 @@ class UserSchema(Schema):
         return User(**data)
 
 class PostSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.Int()
     title = fields.String()
     created_on = fields.DateTime()
 
@@ -198,14 +173,15 @@ class PostSchema(Schema):
         schema='TagSchema'
     )
 
-    @post_load
-    def make_post(self, data):
-        return Post(**data)
+    # @post_load
+    # def make_post(self, data):
+    #     return Post(**data)
 
 class TagSchema(Schema):
     id = fields.String(dump_only=True)
     name = fields.String()
     created_on = fields.DateTime()
+    metadata = fields.Meta()
 
     posts = fields.Relationship(
         type_='posts',
@@ -225,6 +201,6 @@ class TagSchema(Schema):
         self_url = '/api/tags/{tag_id}'
         self_url_kwargs = {'tag_id': '<id>'}
 
-    @post_load
-    def make_tag(self, data):
-        return Tag(**data)
+    # @post_load
+    # def make_tag(self, data):
+    #     return Tag(**data)
