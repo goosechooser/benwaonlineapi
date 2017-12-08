@@ -3,7 +3,7 @@ from marshmallow_jsonapi import Schema, fields
 from benwaonlineapi.models import User, Image, Preview, Comment, Post, Tag
 
 class PreviewSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.Int()
     filepath = fields.Str()
     created_on = fields.DateTime()
 
@@ -13,12 +13,9 @@ class PreviewSchema(Schema):
         self_url = '/api/previews/{preview_id}'
         self_url_kwargs = {'preview_id': '<id>'}
 
-    @post_load
-    def make_preview(self, data):
-        return Preview(**data)
 
 class ImageSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.Int()
     filepath = fields.Str()
     created_on = fields.DateTime()
 
@@ -28,19 +25,15 @@ class ImageSchema(Schema):
         self_url = '/api/images/{image_id}'
         self_url_kwargs = {'image_id': '<id>'}
 
-    @post_load
-    def make_image(self, data):
-        return Image(**data)
 
 class CommentSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.Int()
     content = fields.String()
     created_on = fields.DateTime()
 
     class Meta:
         type_ = 'comments'
         fields = ('id', 'content', 'created_on', 'user', 'post')
-        strict = True
         self_url = '/api/comments/{comment_id}'
         self_url_kwargs = {'comment_id': '<id>'}
 
@@ -64,9 +57,6 @@ class CommentSchema(Schema):
         schema='PostSchema'
     )
 
-    # @post_load
-    # def make_comment(self, data):
-    #     return Comment(**data)
 
 class UserSchema(Schema):
     id = fields.Int()
@@ -77,7 +67,7 @@ class UserSchema(Schema):
 
     class Meta:
         type_ = 'users'
-        strict = True
+        # strict = True
         self_url = '/api/users/{user_id}'
         self_url_kwargs = {'user_id': '<id>'}
 
@@ -105,6 +95,8 @@ class UserSchema(Schema):
         schema='PostSchema'
     )
 
+    # We could pull this out if we made another object that used the UserMixin
+    # Something to think about for the next round of refactors
     @post_load
     def make_user(self, data):
         return User(**data)
@@ -117,7 +109,7 @@ class PostSchema(Schema):
     class Meta:
         type_ = 'posts'
         fields = ('id', 'title', 'created_on', 'user', 'comments', 'image', 'preview', 'tags')
-        strict = True
+        # strict = True
         self_url = '/api/posts/{post_id}'
         self_url_kwargs = {'post_id': '<id>'}
 
@@ -173,12 +165,8 @@ class PostSchema(Schema):
         schema='TagSchema'
     )
 
-    # @post_load
-    # def make_post(self, data):
-    #     return Post(**data)
-
 class TagSchema(Schema):
-    id = fields.String(dump_only=True)
+    id = fields.String()
     name = fields.String()
     created_on = fields.DateTime()
     metadata = fields.Meta()
@@ -196,11 +184,9 @@ class TagSchema(Schema):
 
     class Meta:
         type_ = 'tags'
-        fields = ('id', 'name', 'created_on', 'posts')
-        # strict = True
         self_url = '/api/tags/{tag_id}'
         self_url_kwargs = {'tag_id': '<id>'}
 
-    # @post_load
-    # def make_tag(self, data):
-    #     return Tag(**data)
+    @post_load
+    def append_total(self, data):
+        data['total'] = data.get('metadata', {}).get('total', 1)
