@@ -6,7 +6,6 @@ processors.py contains pre and post-processors for all calls to the api
 from flask import Blueprint, request
 from flask_restless import APIManager
 
-# from benwaonlineapi.api import views, processors
 from benwaonlineapi.api import processors
 
 from benwaonlineapi.database import db
@@ -31,6 +30,7 @@ users_api = manager.create_api(models.User, collection_name='users',
                                 preprocessors=user_preprocessors)
 
 posts_api = manager.create_api(models.Post, collection_name='posts',
+                                page_size=30,
                                 methods=['GET', 'POST', 'PATCH'],
                                 allow_to_many_replacement=True)
 
