@@ -54,7 +54,7 @@ def get_jwks():
     jwks = jwksurl.json()
     return jwks
 
-def requires_scope(required_scope, token):
+def has_scope(scope, token):
     unverified_claims = jwt.get_unverified_claims(token)
     token_scopes = unverified_claims['scope'].split()
-    return True if required_scope in token_scopes else False
+    return True if scope in token_scopes else False

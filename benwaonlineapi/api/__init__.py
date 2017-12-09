@@ -14,15 +14,23 @@ from benwaonlineapi import models
 from marshmallow import pprint
 
 api = Blueprint('api', __name__)
+global_preprocessors = {
+    'POST_RESOURCE': [processors.remove_id, processors.authenticate],
+    'DELETE_RESOURCE': [processors.authenticate],
+    'PATCH_RESOURCE': [processors.authenticate],
+    'DELETE_RELATIONSHIP': [processors.authenticate],
+    'POST_RELATIONSHIP': [processors.authenticate],
+    'PATCH_RELATIONSHIP': [processors.authenticate]
+}
 
-global_preprocessors = {'POST_RESOURCE': [processors.remove_id, processors.authenticate]}
-user_preprocessors = {'POST_RESOURCE': [processors.username_preproc, processors.remove_token]}
+user_preprocessors = {'POST_RESOURCE': [processors.username_preproc]}
 tag_postprocessors = {'GET_COLLECTION': [processors.count]}
 
 manager = APIManager(flask_sqlalchemy_db=db, preprocessors=global_preprocessors)
 
 comments_api = manager.create_api(models.Comment, collection_name='comments',
-                                    methods=['GET', 'POST', 'DELETE', 'PATCH'])
+                                    methods=['GET', 'POST', 'DELETE', 'PATCH'],
+                                    allow_to_many_replacement=True)
 
 users_api = manager.create_api(models.User, collection_name='users',
                                 methods=['GET', 'POST', 'DELETE', 'PATCH'],
