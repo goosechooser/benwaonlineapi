@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
-from flask_login import UserMixin
 from benwaonlineapi.database import db
 
 posts_tags = db.Table('posts_tags',
                        db.Column('posts_id', db.Integer, db.ForeignKey('post.id')),
                        db.Column('tags_id', db.Integer, db.ForeignKey('tag.id')))
 
-class User(db.Model, UserMixin):
+class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, server_default=db.func.now())
@@ -47,7 +46,7 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def owner(self, user):
+    def owner_is(self, user):
         return user.id == self.user_id
 
 class Post(db.Model):
