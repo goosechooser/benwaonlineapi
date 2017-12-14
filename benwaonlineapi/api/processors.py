@@ -68,7 +68,7 @@ def remove_token(data=None, **kw):
 
 def count(result=None, filters=None, sort=None, group_by=None, single=None, **kw):
     '''
-    Post-processor for GET_RESOURCE of tags.
+    Post-processor for GET_COLLECTION of tags.
     Adds the number of posts containing the tag to the meta field.
     '''
     for tag in result['data']:
