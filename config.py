@@ -2,14 +2,20 @@ import os
 
 BASE = os.path.abspath(os.path.dirname(__file__))
 
+def get_secret(secret_name):
+    '''Returns value provided by a docker secret, otherwise returns env'''
+    try:
+        with open('/run/secrets/' + secret_name, 'r') as f:
+            data = f.read()
+            return data.strip()
+    except OSError:
+        return os.getenv(secret_name)
+
 class Config(object):
     BASE_DIR = BASE
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = 'not-so-secret'
-    SECURITY_PASSWORD_SALT = 'super-secret'
-
-    API_AUDIENCE = 'https://api.benwa.online'
-    AUTH0_DOMAIN = 'choosegoose.auth0.com'
+    API_AUDIENCE = get_secret('API_AUDIENCE')
+    AUTH0_DOMAIN = get_secret('AUTH0_DOMAIN')
     AUTH0_CONSUMER_KEY = ''
     AUTH0_CONSUMER_SECRET = ''
     JWKS_URL = 'https://' + AUTH0_DOMAIN + '/.well-known/jwks.json'
@@ -17,7 +23,6 @@ class Config(object):
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonline'
     DEBUG = True
-    SECRET_KEY = 'not-so-secret'
 
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE, 'benwaonline_test.db')
@@ -25,9 +30,14 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False
 
 class ProdConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{}:{}@{}:{}/benwaonline'.format(
+        get_secret('MYSQL_USER'),
+        get_secret('MYSQL_PASSWORD'),
+        os.getenv('MYSQL_HOST'),
+        os.getenv('MYSQL_PORT')
+    )
+
     DEBUG = False
-    SECRET_KEY = ''
-    SECURITY_PASSWORD_SALT = ''
 
 app_config = {
     'dev': DevConfig,

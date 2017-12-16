@@ -9,11 +9,6 @@ from flask_restless.views.base import catch_processing_exceptions
 from benwaonlineapi import models
 from benwaonlineapi.util import verify_token, get_jwks, has_scope
 
-AUTH0_DOMAIN = 'choosegoose.auth0.com'
-ALGORITHMS = ['RS256']
-ISSUER = 'https://' + AUTH0_DOMAIN + '/'
-API_AUDIENCE = 'https://api.benwa.online'
-
 # Should clean this up so it uses a reskinned ProcessingException
 @catch_processing_exceptions
 def get_token_header():

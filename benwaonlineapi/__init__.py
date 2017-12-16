@@ -1,6 +1,4 @@
-
 from flask import Flask, g, url_for, request, flash, redirect, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from config import app_config
 
 from benwaonlineapi.database import db

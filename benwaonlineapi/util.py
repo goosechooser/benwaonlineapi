@@ -1,19 +1,20 @@
 """
 Contains any utility functions used by processors or the benwaonline frontend.
 """
+import os
 import requests
 from jose import jwt
 from flask import current_app
 from flask_restless import ProcessingException
 from flask_restless.views.base import catch_processing_exceptions
+from config import app_config
 
-AUTH0_DOMAIN = 'choosegoose.auth0.com'
+cfg = app_config[os.getenv('FLASK_CONFIG')]
 ALGORITHMS = ['RS256']
-ISSUER = 'https://' + AUTH0_DOMAIN + '/'
-API_AUDIENCE = 'https://api.benwa.online'
+ISSUER = 'https://' + cfg.AUTH0_DOMAIN + '/'
 
 @catch_processing_exceptions
-def verify_token(token, jwks, audience=API_AUDIENCE):
+def verify_token(token, jwks, audience=cfg.API_AUDIENCE):
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = {}
     for key in jwks["keys"]:
