@@ -11,10 +11,7 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(app_config[config_name])
 
-    app.config.from_envvar('BENWAONLINEAPI_SETTINGS')
-
     db.init_app(app)
-
     manager.init_app(app)
     app.register_blueprint(api)
 
