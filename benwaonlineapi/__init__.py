@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from benwaonlineapi.config import app_config
 from benwaonlineapi.database import db
 from benwaonlineapi.api import api, manager
-from benwaonlineapi.models import Tag, User
+from benwaonlineapi import models
 
 def create_app(config_name=None):
     """
@@ -21,13 +21,13 @@ def create_app(config_name=None):
     @app.cli.command()
     def initdb():
         """Initialize the database."""
-        init_db()
+        init_db(app)
         init_tags(db.session)
 
     return app
 
-def init_db():
-    engine = create_engine(app.config['DB_BASE_URI'])
+def init_db(app):
+    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
     # 20$ says I run this on production
     engine.execute('DROP DATABASE benwaonline')
     engine.execute('CREATE DATABASE benwaonline')
@@ -37,7 +37,7 @@ def init_db():
     db.create_all()
 
 def init_tags(session):
-    tag = Tag(name='benwa')
+    tag = models.Tag(name='benwa')
     session.add(tag)
 
     session.commit()
