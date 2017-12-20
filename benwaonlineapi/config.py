@@ -30,12 +30,13 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False
 
 class ProdConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{}:{}@{}:{}/benwaonline'.format(
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
         get_secret('MYSQL_USER'),
         get_secret('MYSQL_PASSWORD'),
         os.getenv('MYSQL_HOST'),
         os.getenv('MYSQL_PORT')
     )
+    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonline'
 
     DEBUG = False
 

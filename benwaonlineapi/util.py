@@ -7,7 +7,7 @@ from jose import jwt
 from flask import current_app
 from flask_restless import ProcessingException
 from flask_restless.views.base import catch_processing_exceptions
-from config import app_config
+from benwaonlineapi.config import app_config
 
 cfg = app_config[os.getenv('FLASK_CONFIG')]
 ALGORITHMS = ['RS256']
