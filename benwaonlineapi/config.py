@@ -14,11 +14,13 @@ def get_secret(secret_name):
 class Config(object):
     BASE_DIR = BASE
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    API_AUDIENCE = get_secret('API_AUDIENCE')
-    AUTH0_DOMAIN = get_secret('AUTH0_DOMAIN')
-    AUTH0_CONSUMER_KEY = ''
-    AUTH0_CONSUMER_SECRET = ''
-    JWKS_URL = 'https://' + AUTH0_DOMAIN + '/.well-known/jwks.json'
+    # No longer using auth0 since machine-to-machine authentication isn't free
+    # Rip
+    # API_AUDIENCE = get_secret('API_AUDIENCE')
+    # AUTH0_DOMAIN = get_secret('AUTH0_DOMAIN')
+    # AUTH0_CONSUMER_KEY = ''
+    # AUTH0_CONSUMER_SECRET = ''
+    # JWKS_URL = 'https://' + AUTH0_DOMAIN + '/.well-known/jwks.json'
 
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonline'
