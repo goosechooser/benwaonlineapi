@@ -14,17 +14,14 @@ def get_secret(secret_name):
 class Config(object):
     BASE_DIR = BASE
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # No longer using auth0 since machine-to-machine authentication isn't free
-    # Rip
-    # API_AUDIENCE = get_secret('API_AUDIENCE')
-    # AUTH0_DOMAIN = get_secret('AUTH0_DOMAIN')
-    # AUTH0_CONSUMER_KEY = ''
-    # AUTH0_CONSUMER_SECRET = ''
-    # JWKS_URL = 'https://' + AUTH0_DOMAIN + '/.well-known/jwks.json'
+    API_AUDIENCE = 'api audience'
+    ISSUER = 'issuer'
 
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonline'
     DEBUG = True
+    AUTH_URL = 'http://127.0.0.1:5002'
+    JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
 
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE, 'benwaonline_test.db')
@@ -39,8 +36,10 @@ class ProdConfig(Config):
         os.getenv('MYSQL_PORT')
     )
     SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonline'
-
     DEBUG = False
+
+    ISSUER = 'https://benwa.online'
+    API_AUDIENCE = 'https://benwa.online/api'
 
 app_config = {
     'dev': DevConfig,

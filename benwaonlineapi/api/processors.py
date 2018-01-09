@@ -54,8 +54,7 @@ def username_preproc(data=None, **kw):
     ''' Preprocessor for username, used during a POST_RESOURCE of a User '''
     token = get_token_header()
     claims = jwt.get_unverified_claims(token)
-    user_id = claims['sub'].split('|')[1]
-    data['data']['attributes']['user_id'] = user_id
+    data['data']['attributes']['user_id'] = claims['sub']
 
 def remove_token(data=None, **kw):
     ''' Preprocessor to remove the authentication token '''
