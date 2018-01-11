@@ -57,10 +57,6 @@ def username_preproc(data=None, **kw):
     claims = jwt.get_unverified_claims(token)
     data['data']['attributes']['user_id'] = claims['sub']
 
-def remove_token(data=None, **kw):
-    ''' Preprocessor to remove the authentication token '''
-    data.pop('token', None)
-
 def count(result=None, filters=None, sort=None, group_by=None, single=None, **kw):
     '''
     Post-processor for GET_COLLECTION of tags.
