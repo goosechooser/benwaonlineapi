@@ -1,16 +1,15 @@
 
 from marshmallow import pprint
-from jose import jwt
+from jose import jwt, exceptions
 
 from flask import request
 from flask_restless import ProcessingException
 from flask_restless.views.base import catch_processing_exceptions
 
 from benwaonlineapi import models
+from benwaonlineapi.exceptions import BenwaOnlineException
 from benwaonlineapi.util import verify_token, get_jwks, has_scope
 
-# Should clean this up so it uses a reskinned ProcessingException
-@catch_processing_exceptions
 def get_token_header():
     auth = request.headers.get('authorization', None)
     if not auth:
@@ -37,9 +36,11 @@ def get_token_header():
 
 def authenticate(*args, **kwargs):
     token = get_token_header()
-    # cache this
-    jwks = get_jwks()
-    verify_token(token, jwks)
+    try:
+        jwks = get_jwks()
+        verify_token(token, jwks)
+    except ProcessingException as err:
+        raise err
 
 def remove_id(data, **kw):
     # Because marshmallow-jsonapi schemas REQUIRE id

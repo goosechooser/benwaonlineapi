@@ -25,6 +25,8 @@ class DevConfig(Config):
 
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE, 'benwaonline_test.db')
+    AUTH_URL = 'mock://mock'
+    JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
     TESTING = True
     WTF_CSRF_ENABLED = False
 
