@@ -6,9 +6,11 @@ import requests
 from jose import jwt, exceptions
 from flask import current_app
 from flask_restless import ProcessingException
-from flask_restless.views.base import catch_processing_exceptions
+from werkzeug.contrib.cache import SimpleCache
+
 from benwaonlineapi.config import app_config
 
+cache = SimpleCache()
 cfg = app_config[os.getenv('FLASK_CONFIG')]
 ALGORITHMS = ['RS256']
 
@@ -63,17 +65,20 @@ def verify_token(token, jwks, audience=cfg.API_AUDIENCE, issuer=cfg.ISSUER):
     raise ProcessingException(title='invalid header', detail='unable to parse authentication token')
 
 def get_jwks():
-    try:
-        jwksurl = requests.get(current_app.config['JWKS_URL'], timeout=5)
-    except requests.exceptions.Timeout as err:
-        raise ProcessingException(
-            title='JWKS Request Timed Out',
-            detail='the authentication server is unavailable, or another issue has occured',
-            status=500
+    rv = cache.get('jwks')
+    if rv is None:
+        try:
+            jwksurl = requests.get(current_app.config['JWKS_URL'], timeout=5)
+        except requests.exceptions.Timeout:
+            raise ProcessingException(
+                title='JWKS Request Timed Out',
+                detail='the authentication server is unavailable, or another issue has occured',
+                status=500
         )
+        rv = jwksurl.json()
+        cache.set('jwks', rv, timeout=48 * 3600)
+    return rv
 
-    jwks = jwksurl.json()
-    return jwks
 def has_scope(scope, token):
     unverified_claims = jwt.get_unverified_claims(token)
     token_scopes = unverified_claims['scope'].split()
