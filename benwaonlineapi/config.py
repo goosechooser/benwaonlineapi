@@ -18,7 +18,13 @@ class Config(object):
     ISSUER = 'issuer'
 
 class DevConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonline'
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
+        os.getenv('MYSQL_USER', 'root'),
+        os.getenv('MYSQL_PASSWORD', ''),
+        os.getenv('MYSQL_HOST', '127.0.0.1'),
+        os.getenv('MYSQL_PORT', '3306')
+    )
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonline'
     DEBUG = True
     AUTH_URL = 'http://127.0.0.1:5002'
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
@@ -39,9 +45,10 @@ class ProdConfig(Config):
     )
     SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonline'
     DEBUG = False
-
     ISSUER = 'https://benwa.online'
     API_AUDIENCE = 'https://benwa.online/api'
+    AUTH_URL = '{}:{}'.format(os.getenv('AUTH_URL'), os.getenv('AUTH_PORT'))
+    JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
 
 app_config = {
     'dev': DevConfig,

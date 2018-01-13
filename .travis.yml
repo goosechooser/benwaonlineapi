@@ -1,0 +1,33 @@
+sudo: required
+
+language: python
+
+python:
+  - "3.5"
+
+env:
+  - FLASK_CONFIG=test
+
+services:
+  - docker
+  - mysql
+
+before_install:
+  - mysql -u root -e 'CREATE DATABASE benwaonline_test;'
+  - mysql -u root -e "GRANT ALL PRIVILEGES ON benwaonline_test.* TO 'root'@'%';";
+  - docker build -t goosechooser/benwaonline-api:test .
+  - docker run -d goosechooser/benwaonline-api:test
+  - docker ps -a
+
+install:
+  - pip install -r requirements.txt
+  - pip install .
+
+script:
+  - pytest tests
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    docker push "$DOCKER_USERNAME"/benwaonline-api;
+    fi
