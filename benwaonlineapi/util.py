@@ -55,7 +55,7 @@ def verify_token(token, jwks, audience=cfg.API_AUDIENCE, issuer=cfg.ISSUER):
                 issuer=issuer
             )
         except jwt.ExpiredSignatureError as err:
-            msg = 'Token provided by {} has expired'.format(unverified_header['sub'])
+            msg = 'Token provided by {} has expired'.format(unverified_header.get('sub', 'sub not found'))
             current_app.logger.info(msg)
             raise ProcessingException(
                 detail='{0}'.format(err),
