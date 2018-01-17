@@ -26,6 +26,7 @@ pluggy==0.6.0
 py==1.5.2
 pycparser==2.18
 pycrypto==2.6.1
+pymemcache==1.4.4
 PyMySQL==0.7.11
 pytest==3.3.0
 pytest-flask==0.10.0

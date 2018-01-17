@@ -2,17 +2,36 @@
 Contains any utility functions used by processors or the benwaonline frontend.
 """
 import os
+import json
 import requests
 from jose import jwt, exceptions
 from flask import current_app
 from flask_restless import ProcessingException
-from werkzeug.contrib.cache import SimpleCache
+from pymemcache.client.base import Client
 
 from benwaonlineapi.config import app_config
 
-cache = SimpleCache()
 cfg = app_config[os.getenv('FLASK_CONFIG')]
 ALGORITHMS = ['RS256']
+
+def json_serializer(key, value):
+    if type(value) == str:
+        return value, 1
+    return json.dumps(value), 2
+
+def json_deserializer(key, value, flags):
+    if flags == 1:
+        return value.decode('utf-8')
+    if flags == 2:
+        return json.loads(value.decode('utf-8'))
+    raise Exception("Unknown serialization format")
+
+cache = Client(
+    (cfg.MEMCACHED_HOST, cfg.MEMCACHED_PORT),
+    connect_timeout=5,
+    serializer=json_serializer,
+    deserializer=json_deserializer
+)
 
 def verify_token(token, jwks, audience=cfg.API_AUDIENCE, issuer=cfg.ISSUER):
     unverified_header = jwt.get_unverified_header(token)
@@ -36,6 +55,8 @@ def verify_token(token, jwks, audience=cfg.API_AUDIENCE, issuer=cfg.ISSUER):
                 issuer=issuer
             )
         except jwt.ExpiredSignatureError as err:
+            msg = 'Token provided by {} has expired'.format(unverified_header['sub'])
+            current_app.logger.info(msg)
             raise ProcessingException(
                 detail='{0}'.format(err),
                 title='token expired',
@@ -76,7 +97,7 @@ def get_jwks():
                 status=500
         )
         rv = jwksurl.json()
-        cache.set('jwks', rv, timeout=48 * 3600)
+        cache.set('jwks', rv, expire=48 * 3600)
     return rv
 
 def has_scope(scope, token):

@@ -4,7 +4,6 @@ from jose import jwt, exceptions
 
 from flask import request
 from flask_restless import ProcessingException
-from flask_restless.views.base import catch_processing_exceptions
 
 from benwaonlineapi import models
 from benwaonlineapi.exceptions import BenwaOnlineException
