@@ -9,17 +9,14 @@ from benwaonlineapi.cache import cache
 from benwaonlineapi.util import verify_token, get_jwks, has_scope
 
 def get_cache_key():
-    print('request.path + request.query_string', request.path + request.query_string.decode("utf-8"))
     return str(murmur3_32(request.path + request.query_string.decode("utf-8")))
 
 def cache_preprocessor(**kwargs):
     key = get_cache_key()
     if cache.get(key):
-        print('cached')
         raise ProcessingException(description=cache.get(key), code=200)
 
 def cache_postprocessor(result, **kwargs):
-    print('caching')
     cache.set(get_cache_key(), json.dumps(result), expire=60)
 
 def get_token_header():

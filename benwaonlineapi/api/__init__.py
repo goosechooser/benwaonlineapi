@@ -21,11 +21,11 @@ global_preprocessors = {
     'PATCH_RELATIONSHIP': [processors.authenticate]
 }
 
-if os.getenv('FLASK_CONFIG') == 'test':
-    global_preprocessors['GET_COLLECTION'] = [processors.authenticate]
-
 global_preprocessors['GET_COLLECTION'] = [processors.cache_preprocessor]
-global_postprocessors= {'GET_COLLECTION': [processors.cache_postprocessor]}
+global_postprocessors = {'GET_COLLECTION': [processors.cache_postprocessor]}
+
+if os.getenv('FLASK_CONFIG') == 'test':
+    global_preprocessors['GET_COLLECTION'].insert(0, processors.authenticate)
 
 user_preprocessors = {'POST_RESOURCE': [processors.username_preproc]}
 tag_postprocessors = {'GET_COLLECTION': [processors.count]}
