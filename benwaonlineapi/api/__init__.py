@@ -24,10 +24,16 @@ global_preprocessors = {
 if os.getenv('FLASK_CONFIG') == 'test':
     global_preprocessors['GET_COLLECTION'] = [processors.authenticate]
 
+global_preprocessors['GET_COLLECTION'] = [processors.cache_preprocessor]
+global_postprocessors= {'GET_COLLECTION': [processors.cache_postprocessor]}
+
 user_preprocessors = {'POST_RESOURCE': [processors.username_preproc]}
 tag_postprocessors = {'GET_COLLECTION': [processors.count]}
 
-manager = APIManager(flask_sqlalchemy_db=db, preprocessors=global_preprocessors)
+manager = APIManager(
+    flask_sqlalchemy_db=db,
+    preprocessors=global_preprocessors,
+    postprocessors=global_postprocessors)
 
 comments_api = manager.create_api(models.Comment, collection_name='comments',
                                     methods=['GET', 'POST', 'DELETE', 'PATCH'],
