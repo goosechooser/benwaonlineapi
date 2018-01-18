@@ -37,6 +37,7 @@ class TestConfig(Config):
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
     TESTING = True
     WTF_CSRF_ENABLED = False
+    MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11212))
 
 class ProdConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
