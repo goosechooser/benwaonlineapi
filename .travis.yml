@@ -10,7 +10,6 @@ env:
     - FLASK_CONFIG=test
     - MEMCACHED_HOST=localhost
     - MEMCACHED_PORT=11211
-    - DB_NAME=benwaonlineapi_test
 
 services:
   - docker
@@ -18,8 +17,8 @@ services:
   - memcached
 
 before_install:
-  - mysql -u root -e 'CREATE DATABASE "$DB_NAME";'
-  - mysql -u root -e "GRANT ALL PRIVILEGES ON "$DB_NAME".* TO 'root'@'%';";
+  - mysql -u root -e 'CREATE DATABASE benwaonlineapi_test;'
+  - mysql -u root -e "GRANT ALL PRIVILEGES ON benwaonlineapi_test.* TO 'root'@'%';";
   # - docker build -t goosechooser/benwaonline-api:test .
   # - docker run -d goosechooser/benwaonline-api:test
   # - docker ps -a
