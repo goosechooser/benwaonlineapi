@@ -21,19 +21,19 @@ global_preprocessors = {
     'PATCH_RELATIONSHIP': [processors.authenticate]
 }
 
-global_preprocessors['GET_COLLECTION'] = [processors.cache_preprocessor]
-global_postprocessors = {'GET_COLLECTION': [processors.cache_postprocessor]}
+# global_preprocessors['GET_COLLECTION'] = [processors.cache_preprocessor]
+# global_postprocessors = {'GET_COLLECTION': [processors.cache_postprocessor]}
 
-if os.getenv('FLASK_CONFIG') == 'test':
-    global_preprocessors['GET_COLLECTION'].insert(0, processors.authenticate)
+# if os.getenv('FLASK_CONFIG') == 'test':
+#     global_preprocessors['GET_COLLECTION'].insert(0, processors.authenticate)
 
 user_preprocessors = {'POST_RESOURCE': [processors.username_preproc]}
 tag_postprocessors = {'GET_COLLECTION': [processors.count]}
 
 manager = APIManager(
     flask_sqlalchemy_db=db,
-    preprocessors=global_preprocessors,
-    postprocessors=global_postprocessors)
+    preprocessors=global_preprocessors)#,
+    # postprocessors=global_postprocessors)
 
 comments_api = manager.create_api(models.Comment, collection_name='comments',
                                     methods=['GET', 'POST', 'DELETE', 'PATCH'],
@@ -45,7 +45,7 @@ users_api = manager.create_api(models.User, collection_name='users',
                                 preprocessors=user_preprocessors)
 
 posts_api = manager.create_api(models.Post, collection_name='posts',
-                                page_size=30,
+                                page_size=100,
                                 methods=['GET', 'POST', 'PATCH'],
                                 allow_to_many_replacement=True)
 
