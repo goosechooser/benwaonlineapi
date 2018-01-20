@@ -26,13 +26,21 @@ class DevConfig(Config):
         os.getenv('MYSQL_HOST', '127.0.0.1'),
         os.getenv('MYSQL_PORT', '3306')
     )
-    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonline'
+    DB_NAME = os.getenv('DB_NAME', 'benwaonline')
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
     DEBUG = True
     AUTH_URL = 'http://127.0.0.1:5002'
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
 
 class TestConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE, 'benwaonline_test.db')
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
+        os.getenv('MYSQL_USER', 'root'),
+        os.getenv('MYSQL_PASSWORD', ''),
+        os.getenv('MYSQL_HOST', '127.0.0.1'),
+        os.getenv('MYSQL_PORT', '3306')
+    )
+    DB_NAME = os.getenv('DB_NAME', 'benwaonlineapi_test')
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
     AUTH_URL = 'mock://mock'
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
     TESTING = True
@@ -46,7 +54,8 @@ class ProdConfig(Config):
         os.getenv('MYSQL_HOST'),
         os.getenv('MYSQL_PORT')
     )
-    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonline'
+    DB_NAME = os.getenv('DB_NAME', 'benwaonline')
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
     DEBUG = False
     ISSUER = 'https://benwa.online'
     API_AUDIENCE = 'https://benwa.online/api'

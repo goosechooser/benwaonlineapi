@@ -43,9 +43,9 @@ def create_app(config_name=None):
 def init_db(app):
     engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
     # 20$ says I run this on production
-    engine.execute('DROP DATABASE benwaonline')
-    engine.execute('CREATE DATABASE benwaonline')
-    engine.execute('USE benwaonline')
+    engine.execute('DROP DATABASE ' + app.config['DB_NAME'])
+    engine.execute('CREATE DATABASE ' + app.config['DB_NAME'])
+    engine.execute('USE ' + app.config['DB_NAME'])
 
     import benwaonlineapi.models
     db.create_all()
