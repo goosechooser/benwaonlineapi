@@ -20,12 +20,13 @@ global_preprocessors = {
     'POST_RELATIONSHIP': [processors.authenticate],
     'PATCH_RELATIONSHIP': [processors.authenticate]
 }
-
-# global_preprocessors['GET_COLLECTION'] = [processors.cache_preprocessor]
+if os.getenv('FLASK_CONFIG') == 'test':
+    global_preprocessors['GET_COLLECTION'] = [processors.authenticate]
+    
+# global_preprocessors['GET_COLLECTION'] = []
 # global_postprocessors = {'GET_COLLECTION': [processors.cache_postprocessor]}
 
-# if os.getenv('FLASK_CONFIG') == 'test':
-#     global_preprocessors['GET_COLLECTION'].insert(0, processors.authenticate)
+
 
 user_preprocessors = {'POST_RESOURCE': [processors.username_preproc]}
 tag_postprocessors = {'GET_COLLECTION': [processors.count]}
