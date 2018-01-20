@@ -1,14 +1,23 @@
-
-from marshmallow import pprint
-from jose import jwt, exceptions
+import json
+from jose import jwt
 
 from flask import request
 from flask_restless import ProcessingException
-from flask_restless.views.base import catch_processing_exceptions
-
+from pymemcache.client.murmur3 import murmur3_32
 from benwaonlineapi import models
-from benwaonlineapi.exceptions import BenwaOnlineException
+from benwaonlineapi.cache import cache
 from benwaonlineapi.util import verify_token, get_jwks, has_scope
+
+def get_cache_key():
+    return str(murmur3_32(request.path + request.query_string.decode("utf-8")))
+
+def cache_preprocessor(**kwargs):
+    key = get_cache_key()
+    if cache.get(key):
+        raise ProcessingException(description=cache.get(key), code=200)
+
+def cache_postprocessor(result, **kwargs):
+    cache.set(get_cache_key(), json.dumps(result), expire=60)
 
 def get_token_header():
     auth = request.headers.get('authorization', None)
@@ -62,9 +71,10 @@ def count(result=None, filters=None, sort=None, group_by=None, single=None, **kw
     Post-processor for GET_COLLECTION of tags.
     Adds the number of posts containing the tag to the meta field.
     '''
-    for tag in result['data']:
-        _id = int(tag['id'])
-        tag['meta'] = {'total': len(models.Tag.query.get(_id).posts)}
+    if not single:
+        for tag in result['data']:
+            _id = int(tag['id'])
+            tag['meta'] = {'total': len(models.Tag.query.get(_id).posts)}
 
 def has_permission(resource_id, **kw):
     '''

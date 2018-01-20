@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, g, url_for, request, flash, redirect, jsonify
 from sqlalchemy import create_engine
 
@@ -7,11 +8,24 @@ from benwaonlineapi.database import db
 from benwaonlineapi.api import api, manager
 from benwaonlineapi import models
 
+def setup_logger_handlers(loggers):
+    fh = logging.FileHandler(__name__ +'_debug.log')
+    fh.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]'
+    ))
+    fh.setLevel(logging.DEBUG)
+    for logger in loggers:
+        logger.addHandler(fh)
+
+    return
+
 def create_app(config_name=None):
     """
     Returns the Flask app.
     """
     app = Flask(__name__)
+    setup_logger_handlers([app.logger, logging.getLogger('gunicorn.error')])
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)
@@ -29,9 +43,9 @@ def create_app(config_name=None):
 def init_db(app):
     engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
     # 20$ says I run this on production
-    engine.execute('DROP DATABASE benwaonline')
-    engine.execute('CREATE DATABASE benwaonline')
-    engine.execute('USE benwaonline')
+    engine.execute('DROP DATABASE ' + app.config['DB_NAME'])
+    engine.execute('CREATE DATABASE ' + app.config['DB_NAME'])
+    engine.execute('USE ' + app.config['DB_NAME'])
 
     import benwaonlineapi.models
     db.create_all()

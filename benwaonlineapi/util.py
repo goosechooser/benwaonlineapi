@@ -6,11 +6,9 @@ import requests
 from jose import jwt, exceptions
 from flask import current_app
 from flask_restless import ProcessingException
-from werkzeug.contrib.cache import SimpleCache
-
 from benwaonlineapi.config import app_config
+from benwaonlineapi.cache import cache
 
-cache = SimpleCache()
 cfg = app_config[os.getenv('FLASK_CONFIG')]
 ALGORITHMS = ['RS256']
 
@@ -36,6 +34,8 @@ def verify_token(token, jwks, audience=cfg.API_AUDIENCE, issuer=cfg.ISSUER):
                 issuer=issuer
             )
         except jwt.ExpiredSignatureError as err:
+            msg = 'Token provided by {} has expired'.format(unverified_header.get('sub', 'sub not found'))
+            current_app.logger.info(msg)
             raise ProcessingException(
                 detail='{0}'.format(err),
                 title='token expired',
@@ -76,7 +76,7 @@ def get_jwks():
                 status=500
         )
         rv = jwksurl.json()
-        cache.set('jwks', rv, timeout=48 * 3600)
+        cache.set('jwks', rv, expire=48 * 3600)
     return rv
 
 def has_scope(scope, token):
