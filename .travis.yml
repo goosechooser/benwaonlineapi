@@ -34,7 +34,7 @@ after_success:
   - docker build -t benwaonline-api .
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker tag benwaonline-api:latest "$DOCKER_USERNAME"/benwaonline-api:latest
+      docker tag benwaonline-api:latest "$DOCKER_USERNAME"/benwaonline-api:latest;
       docker push "$DOCKER_USERNAME"/benwaonline-api:latest;
     else
       docker tag benwaonline-api:latest "$DOCKER_USERNAME"/benwaonline-api:dev;
