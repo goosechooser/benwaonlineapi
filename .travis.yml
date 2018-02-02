@@ -31,12 +31,12 @@ script:
   - pytest tests
 
 after_success:
-  - docker build -t benwaonline-api:docker .
+  - docker build -t benwaonline-api .
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker tag benwaonline-api:docker "$DOCKER_USERNAME"/benwaonline-api:latest
-      docker push "$DOCKER_USERNAME"/benwaonline-api;
+      docker tag benwaonline-api:latest "$DOCKER_USERNAME"/benwaonline-api:latest;
+      docker push "$DOCKER_USERNAME"/benwaonline-api:latest;
     else
-      docker tag benwaonline-api:docker "$DOCKER_USERNAME"/benwaonline-api:dev;
+      docker tag benwaonline-api:latest "$DOCKER_USERNAME"/benwaonline-api:dev;
       docker push "$DOCKER_USERNAME"/benwaonline-api:dev;
     fi
