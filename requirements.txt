@@ -10,6 +10,7 @@ cryptography==2.1.4
 ecdsa==0.13
 Flask==0.12.2
 Flask-Login==0.4.0
+flask-migrate==2.1.1
 git+https://github.com/jfinkels/flask-restless/
 Flask-SQLAlchemy==2.3.2
 future==0.16.0
