@@ -22,7 +22,7 @@ global_preprocessors = {
 }
 if os.getenv('FLASK_CONFIG') == 'test':
     global_preprocessors['GET_COLLECTION'] = [processors.authenticate]
-    
+
 # global_preprocessors['GET_COLLECTION'] = []
 # global_postprocessors = {'GET_COLLECTION': [processors.cache_postprocessor]}
 
@@ -43,6 +43,7 @@ comments_api = manager.create_api(models.Comment, collection_name='comments',
 users_api = manager.create_api(models.User, collection_name='users',
                                 methods=['GET', 'POST', 'DELETE', 'PATCH'],
                                 allow_to_many_replacement=True,
+                                allow_delete_from_to_many_relationships=True,
                                 preprocessors=user_preprocessors)
 
 posts_api = manager.create_api(models.Post, collection_name='posts',
