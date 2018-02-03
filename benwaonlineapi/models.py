@@ -6,6 +6,10 @@ posts_tags = db.Table('posts_tags',
                        db.Column('posts_id', db.Integer, db.ForeignKey('post.id')),
                        db.Column('tags_id', db.Integer, db.ForeignKey('tag.id')))
 
+likes_posts = db.Table('likes_posts',
+                        db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                        db.Column('posts_id', db.Integer, db.ForeignKey('post.id')))
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -60,6 +64,7 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
     tags = db.relationship('Tag', secondary=posts_tags, backref='posts', lazy='dynamic')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    likes = db.relationship('User', secondary=likes_posts, backref='likes', lazy='dynamic')
 
 class Tag(db.Model):
     __tablename__ = 'tag'
