@@ -1,7 +1,6 @@
 from marshmallow import post_load, pre_dump
-from marshmallow_jsonapi import Schema, fields
-from marshmallow_jsonapi.flask import Schema as flask_schema
-
+from marshmallow_jsonapi import fields
+from marshmallow_jsonapi.flask import Schema, Relationship
 # class BaseSchema(Schema):
 
 #     @pre_dump
@@ -108,7 +107,7 @@ from marshmallow_jsonapi.flask import Schema as flask_schema
 #         schema='PostSchema'
 #     )
 
-class PostSchema(flask_schema):
+class PostSchema(Schema):
     id = fields.Int()
     title = fields.String()
     created_on = fields.DateTime()
@@ -160,7 +159,7 @@ class PostSchema(flask_schema):
     #     schema='PreviewSchema'
     # )
 
-    tags = fields.Relationship(
+    tags = Relationship(
         type_='tags',
         self_view='api.post_tags',
         self_view_kwargs={'id': '<id>'},
@@ -182,13 +181,13 @@ class PostSchema(flask_schema):
     #     schema='UserSchema'
     # )
 
-class TagSchema(flask_schema):
+class TagSchema(Schema):
     id = fields.String()
     name = fields.String()
     created_on = fields.DateTime()
     # metadata = fields.Meta()
 
-    posts = fields.Relationship(
+    posts = Relationship(
         type_='posts',
         self_view='api.tag_posts',
         self_view_kwargs={'id': '<id>'},

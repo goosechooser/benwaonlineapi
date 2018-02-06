@@ -7,7 +7,7 @@ from benwaonlineapi.resources import (
 
 manager = Api(blueprint=Blueprint('api', __name__, url_prefix='/api'))
 
-manager.route(PostList, 'post_list', '/posts', '/tags/<int:tag_id>/posts')
+manager.route(PostList, 'post_list', '/posts', '/tags/<int:id>/posts')
 manager.route(PostDetail, 'post_detail', '/posts/<int:id>')
 manager.route(PostRelationship, 'post_tags', '/posts/<int:id>/relationships/tags')
 manager.route(TagList, 'tag_list', '/tags', '/posts/<int:id>/tags')
