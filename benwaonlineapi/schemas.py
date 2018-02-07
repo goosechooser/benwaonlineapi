@@ -91,16 +91,16 @@ class UserSchema(Schema):
         schema='CommentSchema'
     )
 
-#     likes = fields.Relationship(
-#         type_='posts',
-#         self_url='/api/users/{user_id}/relationships/likes',
-#         self_url_kwargs={'user_id': '<id>'},
-#         related_url='/api/users/{user_id}/likes',
-#         related_url_kwargs={'user_id': '<id>'},
-#         many=True,
-#         include_resource_linkage=True,
-#         schema='PostSchema'
-#     )
+    # likes = fields.Relationship(
+    #     type_='posts',
+    #     self_url='/api/users/{user_id}/relationships/likes',
+    #     self_url_kwargs={'user_id': '<id>'},
+    #     related_url='/api/users/{user_id}/likes',
+    #     related_url_kwargs={'user_id': '<id>'},
+    #     many=True,
+    #     include_resource_linkage=True,
+    #     schema='PostSchema'
+    # )
 
 class PostSchema(Schema):
     id = fields.Int()
@@ -180,6 +180,7 @@ class TagSchema(Schema):
     id = fields.String()
     name = fields.String()
     created_on = fields.DateTime()
+    num_posts = fields.Int()
     # metadata = fields.Meta()
 
     posts = Relationship(
