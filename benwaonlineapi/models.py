@@ -17,8 +17,8 @@ class User(db.Model):
     user_id = db.Column(db.String(64), unique=True)
     username = db.Column(db.String(64))
     active = db.Column(db.Boolean(), default=True)
-    comments = db.relationship('Comment', backref='user') #, lazy='dynamic')
-    posts = db.relationship('Post', backref='user') #, lazy='dynamic')
+    comments = db.relationship('Comment', backref='user')
+    posts = db.relationship('Post', backref='user')
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)
@@ -61,10 +61,10 @@ class Post(db.Model):
     created_on = db.Column(db.DateTime, server_default=db.func.now())
     image = db.relationship('Image', uselist=False, backref='post')
     preview = db.relationship('Preview', uselist=False, backref='post')
-    comments = db.relationship('Comment', backref='post') #, lazy='dynamic')
-    tags = db.relationship('Tag', secondary=posts_tags, backref='posts') #, lazy='dynamic')
+    comments = db.relationship('Comment', backref='post')
+    tags = db.relationship('Tag', secondary=posts_tags, backref='posts')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    likes = db.relationship('User', secondary=likes_posts, backref='likes') #, lazy='dynamic')
+    likes = db.relationship('User', secondary=likes_posts, backref='likes')
 
 class Tag(db.Model):
     __tablename__ = 'tag'
