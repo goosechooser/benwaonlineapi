@@ -1,69 +1,66 @@
 from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationship
-from marshmallow_jsonapi import fields
-from benwaonlineapi import resources
-from benwaonlineapi.manager import manager
+from marshmallow_jsonapi.flask import Relationship
+from benwaonlineapi import schemas
+from benwaonlineapi.resources import (
+    PostDetail, PostList, PostRelationship,
+    TagDetail, TagList, TagRelationship,
+    UserDetail, UserList, UserRelationship
+)
 
-# comments_api = manager.create_api(models.Comment, collection_name='comments',
-#                                   methods=['GET', 'POST', 'DELETE', 'PATCH'],
-#                                   allow_to_many_replacement=True)
+class EndpointFactory(object):
+    def __init__(self):
+        self.memo = {}
 
-# print(resource.view)
-# print(resource.schema.Meta.type_)
-# print(dir(resource.schema))
-# print(manager.blueprint.name)
+    @property
+    def endpoints(self):
+        return self.memo.values()
 
+    def make_endpoint(self, resource):
+        if issubclass(resource, ResourceDetail):
+            return [self.detail_endpoint(resource)]
 
-def view_name(resource):
-    if issubclass(resource, ResourceDetail):
-        suffix = '_detail'
+        if issubclass(resource, ResourceList):
+            return [self.list_endpoint(resource)]
 
-    if issubclass(resource, ResourceList):
-        suffix = '_list'
+        if issubclass(resource, ResourceRelationship):
+            return self.relationship_endpoint(resource)
 
-    if issubclass(resource, ResourceRelationship):
-        suffix = '_relationship'
-
-    return resource.schema.Meta.type_ + suffix
-
-def relationship_url(relation):
-    return 'relationships/' + relation.type_
-
-def make_urls(resource):
-    if issubclass(resource, ResourceDetail):
-        url = resource.schema.Meta.self_url
-
-    if issubclass(resource, ResourceList):
-        url = resource.schema.Meta.type_
-
-    if issubclass(resource, ResourceRelationship):
+    def relationship_endpoint(self, resource):
+        # view names
         for k, v in resource.schema._declared_fields.items():
-            if isinstance(v, fields.Relationship):
-                print(relationship_url(v))
+            if isinstance(v, Relationship):
+                self.related_dict(resource, v, k)
 
-    # return '/' + url
+    def related_dict(self, resource, related_field, related_field_name):
+        type_ = resource.schema.Meta.type_
+        view = type_ + '_' + related_field_name
+        suffix = 'list' if related_field.many else 'detail'
+        related_view = related_field.type_ + '_' + suffix
+        # print('related_view', related_view)
+        related_url = '/'.join(['', type_, '<int:id>', related_field_name])
+        # print('related_url', related_url)
+        self.memo.get(related_view)['urls'].append(related_url)
 
+        self.memo[view] = {'resource': resource,
+                           'view': view,
+                           'urls': ['/'.join(['', type_, '<int:id>', 'relationships', related_field_name])],
+                           'url_rule_options': {}
+                           }
 
-def endpoint_route(resource):
-    print(resource.__name__)
-    print(view_name(resource))
-    make_urls(resource)
+    def list_endpoint(self, resource):
+        type_ = resource.schema.Meta.type_
+        view = type_ + '_' + 'list'
+        self.memo[view] = {'resource': resource,
+                           'view': view,
+                           'urls': ['/'.join(['', type_])],
+                           'url_rule_options': {}
+                           }
 
-
-# def init_routes(manager, resources):
-#     for resource in resources:
-        # manager.route(resource, )
-
-
-# class EndpointFactory(object):
-#     def __init__(self, blueprint=None):
-#         self.blueprint = blueprint
-
-
-#     def add_route(api, resource):
-
-
-
-if __name__ == '__main__':
-    # endpoint_route(resources.PostList)
-    endpoint_route(resources.PostDetail)
-    # endpoint_route(resources.PostRelationship)
+    def detail_endpoint(self, resource):
+        type_ = resource.schema.Meta.type_
+        view = type_ + '_' + 'detail'
+        self.memo[view] = {'resource': resource,
+                           'view': view,
+                           'urls': ['/'.join(['', type_, '<int:id>'])],
+                           'url_rule_options': {}
+                           }
