@@ -9,116 +9,87 @@ from benwaonlineapi import models
 # from benwaonlineapi.util import verify_token, get_jwks
 from benwaonlineapi.resources import processors
 
-class PostList(ResourceList):
-    def before_create_object(self, data, view_kwargs):
-        processors.remove_id(data)
-
-    view_kwargs = True
-    schema = schemas.PostSchema
-    data_layer = {
-        'session': db.session,
-        'model': models.Post,
-        'methods': {
-            'before_create_object': before_create_object
-        }
-    }
-
+class BaseList(ResourceList):
     @processors.authenticate
     def before_post(*args, **kwargs):
-    #    """Make custom work here. View args and kwargs are provided as parameter
-    #    """
-       msg = 'args: {}\nkwargs: {}'.format(args, kwargs)
-       current_app.logger.debug(msg)
+        processors.remove_id(kwargs['data'])
+        pass
 
-class PostDetail(ResourceDetail):
+class BaseDetail(ResourceDetail):
+    @processors.authenticate
+    def before_patch(*args, **kwargs):
+        pass
+
+    @processors.authenticate
+    def before_delete(*args, **kwargs):
+        pass
+
+class BaseRelationship(ResourceRelationship):
+    @processors.authenticate
+    def before_post(*args, **kwargs):
+        pass
+
+    @processors.authenticate
+    def before_patch(*args, **kwargs):
+        pass
+
+    @processors.authenticate
+    def before_delete(*args, **kwargs):
+        pass
+
+class PostList(BaseList):
+    view_kwargs = True
     schema = schemas.PostSchema
     data_layer = {
         'session': db.session,
         'model': models.Post
     }
 
-    def before_get(*args, **kwargs):
-       """Make custom work here. View args and kwargs are provided as parameter
-       """
-       print('??')
-       print(request.headers)
-       msg = 'args: {}\nkwargs: {}'.format(args, kwargs)
-       current_app.logger.debug(msg)
-       processors.authenticate(*args, **kwargs)
+class PostDetail(BaseDetail):
+    schema = schemas.PostSchema
+    data_layer = {
+        'session': db.session,
+        'model': models.Post
+    }
 
-    def before_post(*args, **kwargs):
-       """Make custom work here. View args and kwargs are provided as parameter
-       """
-       print('??')
-       print(request.headers)
-       msg = 'args: {}\nkwargs: {}'.format(args, kwargs)
-       current_app.logger.debug(msg)
-       processors.authenticate(*args, **kwargs)
-
-class PostRelationship(ResourceRelationship):
+class PostRelationship(BaseRelationship):
     schema = schemas.PostSchema
     data_layer = {
         'session': db.session,
         'model': models.Post,
     }
 
-class TagList(ResourceList):
-    def before_create_object(self, data, view_kwargs):
-        print('LIST before_create_object', data, view_kwargs)
-        processors.remove_id(data)
-
+class TagList(BaseList):
     view_kwargs = True
     schema = schemas.TagSchema
     data_layer = {
         'session': db.session,
-        'model': models.Tag,
-        'methods': {'before_create_object': before_create_object}
-
+        'model': models.Tag
     }
 
-    def before_post(*args, **kwargs):
-       """Make custom work here. View args and kwargs are provided as parameter
-       """
-       print('??')
-       print(request.headers)
-       msg = 'args: {}\nkwargs: {}'.format(args, kwargs)
-       current_app.logger.debug(msg)
-       processors.authenticate(*args, **kwargs)
-
-class TagDetail(ResourceDetail):
+class TagDetail(BaseDetail):
     schema = schemas.TagSchema
     data_layer = {
         'session': db.session,
         'model': models.Tag
     }
 
-class TagRelationship(ResourceRelationship):
+class TagRelationship(BaseRelationship):
     schema = schemas.TagSchema
     data_layer = {
         'session': db.session,
         'model': models.Tag
     }
 
-class UserList(ResourceList):
-    def before_create_object(self, data, view_kwargs):
-        print('LIST before_create_object', data, view_kwargs)
-        processors.remove_id(data)
-        processors.username_preproc(data)
-
+class UserList(BaseList):
     view_kwargs = True
     schema = schemas.UserSchema
     data_layer = {
         'session': db.session,
-        'model': models.User,
-        'methods': {'before_create_object': before_create_object}
+        'model': models.User
     }
 
-class UserDetail(ResourceDetail):
-    def before_create_object(self, data, view_kwargs):
-        print('before_create_object', data, view_kwargs)
-        # del view_kwargs['id']
-        # raise Exception
-
+class UserDetail(BaseDetail):
     def before_get_object(self, view_kwargs):
         if view_kwargs.get('id') is not None:
             try:
@@ -132,95 +103,76 @@ class UserDetail(ResourceDetail):
     data_layer = {
         'session': db.session,
         'model': models.User,
-        'methods': {'before_create_object': before_create_object,
-                    'before_get_object': before_get_object}
+        'methods': {'before_get_object': before_get_object}
     }
 
-class UserRelationship(ResourceRelationship):
+class UserRelationship(BaseRelationship):
     schema = schemas.UserSchema
     data_layer = {
         'session': db.session,
         'model': models.User
     }
 
-class ImageList(ResourceList):
-    def before_create_object(self, data, view_kwargs):
-        print('LIST before_create_object', data, view_kwargs)
-        processors.remove_id(data)
-
+class ImageList(BaseList):
     view_kwargs = True
-    schema = schemas.ImageSchema
-    data_layer = {
-        'session': db.session,
-        'model': models.Image,
-        'methods': {'before_create_object': before_create_object}
-
-    }
-
-class ImageDetail(ResourceDetail):
     schema = schemas.ImageSchema
     data_layer = {
         'session': db.session,
         'model': models.Image
     }
 
-class ImageRelationship(ResourceRelationship):
+class ImageDetail(BaseDetail):
     schema = schemas.ImageSchema
     data_layer = {
         'session': db.session,
         'model': models.Image
     }
 
-class PreviewList(ResourceList):
-    def before_create_object(self, data, view_kwargs):
-        print('LIST before_create_object', data, view_kwargs)
-        processors.remove_id(data)
-
-    view_kwargs = True
-    schema = schemas.PreviewSchema
+class ImageRelationship(BaseRelationship):
+    schema = schemas.ImageSchema
     data_layer = {
         'session': db.session,
-        'model': models.Preview,
-        'methods': {'before_create_object': before_create_object}
-
+        'model': models.Image
     }
 
-class PreviewDetail(ResourceDetail):
+class PreviewList(BaseList):
+    view_kwargs = True
     schema = schemas.PreviewSchema
     data_layer = {
         'session': db.session,
         'model': models.Preview
     }
 
-class PreviewRelationship(ResourceRelationship):
+class PreviewDetail(BaseDetail):
     schema = schemas.PreviewSchema
     data_layer = {
         'session': db.session,
         'model': models.Preview
     }
 
-class CommentList(ResourceList):
-    def before_create_object(self, data, view_kwargs):
-        print('LIST before_create_object', data, view_kwargs)
-        processors.remove_id(data)
-
-    view_kwargs = True
-    schema = schemas.CommentSchema
+class PreviewRelationship(BaseRelationship):
+    schema = schemas.PreviewSchema
     data_layer = {
         'session': db.session,
-        'model': models.Comment,
-        'methods': {'before_create_object': before_create_object}
-
+        'model': models.Preview
     }
 
-class CommentDetail(ResourceDetail):
+class CommentList(BaseList):
+    view_kwargs = True
     schema = schemas.CommentSchema
     data_layer = {
         'session': db.session,
         'model': models.Comment
     }
 
-class CommentRelationship(ResourceRelationship):
+class CommentDetail(BaseDetail):
+    schema = schemas.CommentSchema
+    data_layer = {
+        'session': db.session,
+        'model': models.Comment
+    }
+
+class CommentRelationship(BaseRelationship):
     schema = schemas.CommentSchema
     data_layer = {
         'session': db.session,
