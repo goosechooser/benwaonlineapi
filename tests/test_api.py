@@ -150,14 +150,17 @@ def test_authenticate(client, session):
 
     token = generate_jwt(claims)
     headers['Authorization'] = 'Bearer ' + token
-    post = schemas.PostSchema().dumps({
+    user = schemas.UserSchema().dumps({
         "id": "420",
-        "title": "test"
+        "username": "Beautiful Benwa Aficionado"
     }).data
 
     with requests_mock.Mocker() as mock:
         mock.get(current_app.config['JWKS_URL'], json=JWKS)
-        resp = client.post(url_for('api.posts_list'),
-                           headers=headers, data=post)
-                           
+        resp = client.post(url_for('api.users_list'),
+                           headers=headers, data=user)
+
     assert resp.status_code == 201
+    user = schemas.UserSchema().load(resp.json).data
+    assert user['id'] != 420
+    assert user['user_id'] == '6969'

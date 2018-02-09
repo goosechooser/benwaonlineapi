@@ -11,30 +11,30 @@ from benwaonlineapi.resources import processors
 
 class BaseList(ResourceList):
     @processors.authenticate
-    def before_post(*args, **kwargs):
+    def before_post(self, *args, **kwargs):
         processors.remove_id(kwargs['data'])
         pass
 
 class BaseDetail(ResourceDetail):
     @processors.authenticate
-    def before_patch(*args, **kwargs):
+    def before_patch(self, *args, **kwargs):
         pass
 
     @processors.authenticate
-    def before_delete(*args, **kwargs):
+    def before_delete(self, *args, **kwargs):
         pass
 
 class BaseRelationship(ResourceRelationship):
     @processors.authenticate
-    def before_post(*args, **kwargs):
+    def before_post(self, *args, **kwargs):
         pass
 
     @processors.authenticate
-    def before_patch(*args, **kwargs):
+    def before_patch(self, *args, **kwargs):
         pass
 
     @processors.authenticate
-    def before_delete(*args, **kwargs):
+    def before_delete(self, *args, **kwargs):
         pass
 
 class PostList(BaseList):
@@ -59,6 +59,25 @@ class PostRelationship(BaseRelationship):
         'model': models.Post,
     }
 
+class PostRelationship(BaseRelationship):
+    schema = schemas.PostSchema
+    data_layer = {
+        'session': db.session,
+        'model': models.Post,
+    }
+
+class LikeDetail(PostDetail):
+    # schema = schemas.LikesSchema
+    pass
+
+class LikeList(PostList):
+    # schema = schemas.LikesSchema
+    pass
+
+class LikeRelationship(PostRelationship):
+    # schema = schemas.LikesSchema
+    pass
+
 class TagList(BaseList):
     view_kwargs = True
     schema = schemas.TagSchema
@@ -82,6 +101,11 @@ class TagRelationship(BaseRelationship):
     }
 
 class UserList(BaseList):
+    @processors.authenticate
+    def before_post(self, *args, **kwargs):
+        processors.remove_id(kwargs['data'])
+        processors.username_preproc(kwargs['data'])
+
     view_kwargs = True
     schema = schemas.UserSchema
     data_layer = {
