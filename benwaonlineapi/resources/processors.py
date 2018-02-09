@@ -63,8 +63,7 @@ def authenticate(api_method):
 
 def remove_id(data, **kw):
     # Because marshmallow-jsonapi schemas REQUIRE id
-    # and default flask-restless deserializer throws a shitfit
-    # if theres a client generated id
+    # but we don't allow user specified ids
     try:
         del data['id']
     except KeyError:
