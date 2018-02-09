@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import column_property
 from benwaonlineapi.database import db
 
 posts_tags = db.Table('posts_tags',
@@ -71,17 +72,10 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     created_on = db.Column(db.DateTime, server_default=db.func.now())
-
+    num_posts = column_property(
+        db.select([db.func.count(posts_tags.c.posts_id).label("num_posts")])
+        .where(posts_tags.c.tags_id == id).correlate_except(Post)
+        .label("total_tags")
+    )
     def __repr__(self):
         return '<Tag: {}>'.format(self.name)
-
-    @hybrid_property
-    def num_posts(self):
-        return len(self.posts)
-
-    @num_posts.expression
-    def _num_posts_expression(cls):
-        return (db.select([db.func.count(posts_tags.c.posts_id).label("num_posts")])
-                .where(posts_tags.c.tags_id == cls.id)
-                .label("total_tags")
-                )
