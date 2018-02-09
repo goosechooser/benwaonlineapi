@@ -41,7 +41,7 @@ class CommentSchema(Schema):
         self_view='api.comments_user',
         self_view_kwargs={'id': '<id>'},
         related_view='api.users_detail',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         include_resource_linkage=True,
         schema='UserSchema'
     )
@@ -51,7 +51,7 @@ class CommentSchema(Schema):
         self_view='api.comments_post',
         self_view_kwargs={'id': '<id>'},
         related_view='api.posts_detail',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         include_resource_linkage=True,
         schema='PostSchema'
     )
@@ -74,29 +74,29 @@ class UserSchema(Schema):
         self_view='api.users_posts',
         self_view_kwargs={'id': '<id>'},
         related_view='api.posts_list',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         many=True,
         include_resource_linkage=True,
         schema='PostSchema'
     )
 
-    comments = fields.Relationship(
+    comments = Relationship(
         type_='comments',
         self_view='api.users_comments',
         self_view_kwargs={'id': '<id>'},
         related_view='api.comments_list',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         many=True,
         include_resource_linkage=True,
         schema='CommentSchema'
     )
 
-    # likes = fields.Relationship(
+    # likes = Relationship(
     #     type_='posts',
-    #     self_url='/api/users/{user_id}/relationships/likes',
-    #     self_url_kwargs={'user_id': '<id>'},
-    #     related_url='/api/users/{user_id}/likes',
-    #     related_url_kwargs={'user_id': '<id>'},
+    #     self_view='api.users_likes',
+    #     self_view_kwargs={'id': '<id>'},
+    #     related_kwargs='api.likes_list',
+    #     related_view_kwargs={'id': '<id>'},
     #     many=True,
     #     include_resource_linkage=True,
     #     schema='PostSchema'
@@ -118,7 +118,7 @@ class PostSchema(Schema):
         self_view='api.posts_tags',
         self_view_kwargs={'id': '<id>'},
         related_view='api.tags_list',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         many=True,
         include_resource_linkage=True,
         schema='TagSchema'
@@ -134,65 +134,57 @@ class PostSchema(Schema):
         schema='UserSchema'
     )
 
-    image = fields.Relationship(
+    image = Relationship(
         type_='images',
         self_view='api.posts_image',
         self_view_kwargs={'id': '<id>'},
-        related_view='api.image_detail',
+        related_view='api.images_detail',
         related_view_kwargs={'id': '<id>'},
         include_resource_linkage=True,
         schema='ImageSchema'
     )
 
-    preview = fields.Relationship(
+    preview = Relationship(
         type_='previews',
         self_view='api.posts_preview',
         self_view_kwargs={'id': '<id>'},
-        related_view='api.preview_detail',
+        related_view='api.previews_detail',
         related_view_kwargs={'id': '<id>'},
         include_resource_linkage=True,
         schema='PreviewSchema'
     )
 
-    comments = fields.Relationship(
+    comments = Relationship(
         type_='comments',
         self_view='api.posts_comments',
         self_view_kwargs={'id': '<id>'},
         related_view='api.comments_list',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         many=True,
         include_resource_linkage=True,
         schema='CommentSchema'
     )
 
-    # likes = fields.Relationship(
+    # likes = Relationship(
     #     type_='users',
-    #     self_url='/api/posts/{post_id}/relationships/likes',
-    #     self_url_kwargs={'post_id': '<id>'},
-    #     related_url='/api/posts/{post_id}/likes',
-    #     related_url_kwargs={'post_id': '<id>'},
+    #     self_view='api.posts_likes',
+    #     self_view_kwargs={'id': '<id>'},
+    #     related_view='api.likes_list',
+    #     related_view_kwargs={'id': '<id>'},
     #     many=True,
     #     include_resource_linkage=True,
     #     schema='UserSchema'
     # )
+
+# class LikesSchema(PostSchema):
+#     pass
+
 
 class TagSchema(Schema):
     id = fields.String()
     name = fields.String()
     created_on = fields.DateTime()
     num_posts = fields.Int()
-    # metadata = fields.Meta()
-
-    posts = Relationship(
-        type_='posts',
-        self_view='api.tags_posts',
-        self_view_kwargs={'id': '<id>'},
-        related_view='api.posts_list',
-        related_view_kwargs={'id': '<id>'},
-        many=True,
-        include_resource_linkage=True,
-        schema='PostSchema'
-    )
 
     class Meta:
         type_ = 'tags'
@@ -200,6 +192,13 @@ class TagSchema(Schema):
         self_view_kwargs = {'id': '<id>'}
         self_view_many = 'api.tags_list'
 
-    # @post_load
-    # def append_total(self, data):
-    #     data['total'] = data.get('metadata', {}).get('total', 1)
+    posts = Relationship(
+        type_='posts',
+        self_view='api.tags_posts',
+        self_view_kwargs={'id': '<id>'},
+        related_view='api.posts_list',
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
+        many=True,
+        include_resource_linkage=True,
+        schema='PostSchema'
+    )
