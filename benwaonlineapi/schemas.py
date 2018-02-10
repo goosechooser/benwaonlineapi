@@ -28,7 +28,7 @@ class CommentSchema(Schema):
     id = fields.Int()
     content = fields.String()
     created_on = fields.DateTime()
-    poster = fields.String(load_only=True)
+    poster = fields.String()
 
     class Meta:
         type_ = 'comments'
@@ -129,7 +129,7 @@ class PostSchema(Schema):
         self_view='api.posts_user',
         self_view_kwargs={'id': '<id>'},
         related_view='api.users_detail',
-        related_view_kwargs={'id': '<id>'},
+        related_view_kwargs={'id': '<id>', 'type_': Meta.type_},
         include_resource_linkage=True,
         schema='UserSchema'
     )
