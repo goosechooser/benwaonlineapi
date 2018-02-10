@@ -75,16 +75,6 @@ def username_preproc(data=None, **kw):
     claims = jwt.get_unverified_claims(token)
     data['user_id'] = claims['sub']
 
-def count(result=None, filters=None, sort=None, group_by=None, single=None, **kw):
-    '''
-    Post-processor for GET_COLLECTION of tags.
-    Adds the number of posts containing the tag to the meta field.
-    '''
-    if not single:
-        for tag in result['data']:
-            _id = int(tag['id'])
-            tag['meta'] = {'total': len(models.Tag.query.get(_id).posts)}
-
 def has_permission(resource_id, **kw):
     '''
     Pre-processor for DELETE_RESOURCE
