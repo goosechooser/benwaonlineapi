@@ -7,7 +7,8 @@ from benwaonlineapi.resources import (
     UserDetail, UserList, UserRelationship,
     PreviewDetail, PreviewList, PreviewRelationship,
     ImageDetail, ImageList, ImageRelationship,
-    CommentDetail, CommentList, CommentRelationship
+    CommentDetail, CommentList, CommentRelationship,
+    LikeList, LikeRelationship
 )
 
 def make_endpoints(resources, endpoint_factory=None):
@@ -23,8 +24,8 @@ manager = Api(blueprint=Blueprint('api', __name__, url_prefix='/api'))
 resources = [PostDetail, PostList, TagDetail,
              TagList, UserDetail, UserList,
              PreviewDetail, PreviewList, ImageDetail,
-             ImageList, CommentDetail, CommentList,
+             ImageList, CommentDetail, CommentList, LikeList,
              PreviewRelationship, ImageRelationship, CommentRelationship,
-             UserRelationship, PostRelationship, TagRelationship]
+             UserRelationship, PostRelationship, TagRelationship, LikeRelationship]
 
 manager.resources = make_endpoints(resources)

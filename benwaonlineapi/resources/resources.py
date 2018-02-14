@@ -1,3 +1,5 @@
+# A smarter person than I could figure out how to generalize a lot of these methods
+
 from jose import jwt
 from flask import request, current_app
 from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationship
@@ -30,6 +32,21 @@ class BaseList(ResourceList):
     def before_post(self, *args, **kwargs):
         processors.remove_id(kwargs['data'])
         pass
+
+    def before_get_collection(self, qs, view_kwargs):
+        temp = {}
+        for k,v in view_kwargs.items():
+            splits = k.split('_')
+            try:
+                temp['type_'] = splits[0]
+                temp['id'] = v
+            except KeyError:
+                pass
+        try:
+            view_kwargs['type_'] = temp['type_']
+            view_kwargs['id'] = temp['id']
+        except KeyError:
+            pass
 
     def query(self, view_kwargs):
         ''' Constructs the base query
@@ -81,16 +98,6 @@ class BaseRelationship(ResourceRelationship):
         pass
 
 class PostList(BaseList):
-    def before_get(self, *args, **kwargs):
-        print('really')
-
-    def before_get_collection(self, qs, view_kwargs):
-        print('before_get_collection', view_kwargs)
-        print('qs dict', qs.__dict__)
-
-
-
-
     schema = schemas.PostSchema
     data_layer = {
         'session': db.session,
@@ -100,77 +107,118 @@ class PostList(BaseList):
             'images': 'image',
             'users': 'user'
         },
-        'methods': {'query': BaseList.query,
-            'before_get_collection': before_get_collection}
+        'methods':
+        {
+            'before_get_collection': BaseList.before_get_collection,
+            'query': BaseList.query
+        }
     }
 
 class PostDetail(BaseDetail):
     def before_get_object(self, view_kwargs):
+        if view_kwargs.get('comments_id') is not None:
+            try:
+                comment = self.session.query(models.Comment).filter_by(
+                    id=view_kwargs['comments_id']).one()
+            except NoResultFound:
+                raise ObjectNotFound({'parameter': 'comments_id'},
+                                     "Comment: {} not found".format(view_kwargs['comments_id']))
+            else:
+                if comment.post is not None:
+                    view_kwargs['id'] = comment.post.id
+                else:
+                    view_kwargs['id'] = None
+
+    schema = schemas.PostSchema
+    data_layer = {
+        'session': db.session,
+        'model': models.Post,
+        'methods': {'before_get_object': before_get_object,
+                    'query': BaseList.query}
+    }
+
+class PostRelationship(BaseRelationship):
+    schema = schemas.PostSchema
+    data_layer = {
+        'session': db.session,
+        'model': models.Post,
+    }
+
+class LikeList(BaseList):
+    schema = schemas.LikesSchema
+
+    def before_get_collection(self, qs, view_kwargs):
+        temp = {}
+        for k, v in view_kwargs.items():
+            splits = k.split('_')
+            try:
+                temp['type_'] = splits[0]
+                temp['id'] = v
+            except KeyError:
+                pass
+        try:
+            view_kwargs['type_'] = temp['type_']
+            view_kwargs['id'] = temp['id']
+        except KeyError:
+            pass
+
+
+    def query(self, view_kwargs):
+        ''' Constructs the base query
+        Args:
+            view_kwargs (dict): kwargs from the resource view
+
+        Returns:
+            A query I presume.
+        '''
+        id_ = view_kwargs.get('id')
         type_ = view_kwargs.get('type_')
-        if type_ and type_ not in ['comments', 'images', 'previews']:
+
+        if type_ == 'users':
+            query_ = self.session.query(models.Post)
+            model = models.User
+            filter_ = models.likes_posts.c.user_id == id_
+
+        if type_ == 'posts':
+            query_ = self.session.query(models.User)
+            model = models.Post
+            filter_ = models.likes_posts.c.posts_id == id_
+
+        try:
+            self.session.query(model).filter_by(id=id_).one()
+        except NoResultFound:
             raise ObjectNotFound(
-                {'parameter': 'post'}, "{} does not have attribute 'post'".format(type_))
+                {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
 
-    schema = schemas.PostSchema
+        query_ = query_.join(models.likes_posts).join(model).filter(filter_)
+
+        return query_
+
     data_layer = {
         'session': db.session,
         'model': models.Post,
-        'methods': {'before_get_object': before_get_object}
-    }
-
-class PostRelationship(BaseRelationship):
-    schema = schemas.PostSchema
-    data_layer = {
-        'session': db.session,
-        'model': models.Post,
-    }
-
-class PostRelationship(BaseRelationship):
-    def before_patch(self, *args, **kwargs):
-        print('before patch post', args, kwargs)
-
-    def after_patch(self, result):
-        print('after patch post', result)
-
-    def before_create_relationship(self, json_data, relationship_field, related_id_field, view_kwargs):
-        print('before update relationship')
-        print('json_data', json_data, 'relationship_field',
-              relationship_field, 'related_id_field', related_id_field, 'view_kwargs', view_kwargs)
-
-    def after_update_relationship(self, obj, updated, json_data, relationship_field, related_id_field, view_kwargs):
-        print('after update relationship')
-        print(obj, updated, json_data, relationship_field,
-              related_id_field, view_kwargs)
-
-    schema = schemas.PostSchema
-    data_layer = {
-        'session': db.session,
-        'model': models.Post,
-        'eagerload_includes': False,
-        'methods': {
-            'before_create_relationship': before_create_relationship,
-            'after_update_relationship': after_update_relationship
+        'attrs': {},
+        'methods':
+        {
+            'before_get_collection': before_get_collection,
+            'query': query
         }
     }
 
-class LikeDetail(PostDetail):
-    # schema = schemas.LikesSchema
-    pass
-
-class LikeList(PostList):
-    # schema = schemas.LikesSchema
-    pass
-
-class LikeRelationship(PostRelationship):
-    # schema = schemas.LikesSchema
-    pass
+class LikeRelationship(BaseRelationship):
+    schema = schemas.LikesSchema
 
 class TagList(BaseList):
     schema = schemas.TagSchema
     data_layer = {
+        'attrs': {},
         'session': db.session,
         'model': models.Tag,
-        'eagerload_includes': False
+        'methods':
+        {
+            'before_get_collection': BaseList.before_get_collection,
+            'query': BaseList.query
+        }
     }
 
 class TagDetail(BaseDetail):
@@ -181,46 +229,54 @@ class TagDetail(BaseDetail):
     }
 
 class TagRelationship(BaseRelationship):
-    def before_patch(self, *args, **kwargs):
-        print('before patch tags', args, kwargs)
-
-    def before_create_relationship(self, json_data, relationship_field, related_id_field, view_kwargs):
-        print('before update relationship')
-        print('json_data', json_data, 'relationship_field',
-              relationship_field, 'related_id_field', related_id_field, 'view_kwargs', view_kwargs)
-
     schema = schemas.TagSchema
     data_layer = {
         'session': db.session,
         'model': models.Tag,
-        'methods': {'before_create_relationship': before_create_relationship}
     }
 
 class UserList(BaseList):
-    def before_get(self, *args, **kwargs):
-        print('really user')
-
     @processors.authenticate
     def before_post(self, *args, **kwargs):
         processors.remove_id(kwargs['data'])
         processors.username_preproc(kwargs['data'])
 
-
     schema = schemas.UserSchema
     data_layer = {
         'session': db.session,
-        'model': models.User
+        'model': models.User,
+        'methods': {
+            'query': BaseList.query,
+        }
     }
 
 class UserDetail(BaseDetail):
     def before_get_object(self, view_kwargs):
-        if view_kwargs.get('id') is not None:
+        if view_kwargs.get('comments_id') is not None:
             try:
-                user = self.session.query(self.model).filter_by(id=view_kwargs['id']).one()
-
+                comment = self.session.query(models.Comment).filter_by(
+                    id=view_kwargs['comments_id']).one()
             except NoResultFound:
-                raise ObjectNotFound({'parameter': 'id'},
-                                     "Entry: {} not found".format(view_kwargs['id']))
+                raise ObjectNotFound({'parameter': 'comments_id'},
+                                     "Comment: {} not found".format(view_kwargs['comments_id']))
+            else:
+                if comment.user is not None:
+                    view_kwargs['id'] = comment.user.id
+                else:
+                    view_kwargs['id'] = None
+
+        if view_kwargs.get('posts_id') is not None:
+            try:
+                post = self.session.query(models.Comment).filter_by(
+                    id=view_kwargs['posts_id']).one()
+            except NoResultFound:
+                raise ObjectNotFound({'parameter': 'posts_id'},
+                                     "Post: {} not found".format(view_kwargs['posts_id']))
+            else:
+                if post.user is not None:
+                    view_kwargs['id'] = post.user.id
+                else:
+                    view_kwargs['id'] = None
 
     schema = schemas.UserSchema
     data_layer = {
@@ -240,14 +296,32 @@ class ImageList(BaseList):
     schema = schemas.ImageSchema
     data_layer = {
         'session': db.session,
-        'model': models.Image
+        'model': models.Image,
+        'methods': {'query': BaseList.query}
     }
 
 class ImageDetail(BaseDetail):
+    def before_get_object(self, view_kwargs):
+        if view_kwargs.get('posts_id') is not None:
+            try:
+                image = self.session.query(models.Image).filter_by(
+                    id=view_kwargs['posts_id']).one()
+            except NoResultFound:
+                raise ObjectNotFound({'parameter': 'posts_id'},
+                                     "Comment: {} not found".format(view_kwargs['posts_id']))
+            else:
+                if image.post is not None:
+                    view_kwargs['id'] = image.post.id
+                else:
+                    view_kwargs['id'] = None
+
     schema = schemas.ImageSchema
     data_layer = {
         'session': db.session,
-        'model': models.Image
+        'model': models.Image,
+        'methods': {
+            'before_get_object': before_get_object
+        }
     }
 
 class ImageRelationship(BaseRelationship):
@@ -261,14 +335,32 @@ class PreviewList(BaseList):
     schema = schemas.PreviewSchema
     data_layer = {
         'session': db.session,
-        'model': models.Preview
+        'model': models.Preview,
+        'methods': {'query': BaseList.query}
     }
 
 class PreviewDetail(BaseDetail):
+    def before_get_object(self, view_kwargs):
+        if view_kwargs.get('posts_id') is not None:
+            try:
+                preview = self.session.query(models.Preview).filter_by(
+                    id=view_kwargs['posts_id']).one()
+            except NoResultFound:
+                raise ObjectNotFound({'parameter': 'posts_id'},
+                                     "Comment: {} not found".format(view_kwargs['posts_id']))
+            else:
+                if preview.post is not None:
+                    view_kwargs['id'] = preview.post.id
+                else:
+                    view_kwargs['id'] = None
+
     schema = schemas.PreviewSchema
     data_layer = {
         'session': db.session,
-        'model': models.Preview
+        'model': models.Preview,
+        'methods': {
+            'before_get_object': before_get_object
+        }
     }
 
 class PreviewRelationship(BaseRelationship):
@@ -279,21 +371,50 @@ class PreviewRelationship(BaseRelationship):
     }
 
 class CommentList(BaseList):
-    attrs = {
-        'posts': 'post',
-        'users': 'user'
-    }
     schema = schemas.CommentSchema
     data_layer = {
         'session': db.session,
-        'model': models.Comment
+        'model': models.Comment,
+        'attrs': {
+            'posts': 'post',
+            'users': 'user'
+        },
+        'methods': {'query': BaseList.query}
     }
 
 class CommentDetail(BaseDetail):
+    def query(self, view_kwargs):
+        ''' Constructs the base query
+        Args:
+            view_kwargs (dict): kwargs from the resource view
+
+        Returns:
+            A query I presume.
+        '''
+        id_ = view_kwargs.get('id')
+        type_ = view_kwargs.get('type_')
+        query_ = self.session.query(self.model)
+
+        if type_:
+            model = get_class_by_tablename(type_[:-1])
+            try:
+                self.session.query(model).filter_by(id=id_).one()
+            except NoResultFound:
+                raise ObjectNotFound(
+                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
+            else:
+                subq = self.session.query(model).filter(
+                    model.id == id_).subquery()
+                attr_name = self.attrs.get(type_, type_)
+                query_ = query_.join(subq, attr_name, aliased=True)
+
+        return query_
+
     schema = schemas.CommentSchema
     data_layer = {
         'session': db.session,
-        'model': models.Comment
+        'model': models.Comment,
+        'methods': {'query': query}
     }
 
 class CommentRelationship(BaseRelationship):
