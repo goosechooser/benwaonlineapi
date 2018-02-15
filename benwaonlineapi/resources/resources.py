@@ -68,10 +68,11 @@ class BaseList(ResourceList):
                 raise ObjectNotFound(
                     {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
             else:
-                subq = self.session.query(model).filter(
-                    model.id == id_).subquery()
+                subq = self.session.query(model).subquery()
                 attr_name = self.attrs.get(type_, type_)
-                query_ = query_.join(subq, attr_name, aliased=True)
+
+                query_ = query_.join(
+                    subq, attr_name, aliased=True).filter(model.id == id_)
 
         return query_
 
@@ -133,8 +134,9 @@ class PostDetail(BaseDetail):
     data_layer = {
         'session': db.session,
         'model': models.Post,
-        'methods': {'before_get_object': before_get_object,
-                    'query': BaseList.query}
+        'methods': {
+            'before_get_object': before_get_object,
+        }
     }
 
 class PostRelationship(BaseRelationship):
@@ -403,10 +405,9 @@ class CommentDetail(BaseDetail):
                 raise ObjectNotFound(
                     {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
             else:
-                subq = self.session.query(model).filter(
-                    model.id == id_).subquery()
+                subq = self.session.query(model).subquery()
                 attr_name = self.attrs.get(type_, type_)
-                query_ = query_.join(subq, attr_name, aliased=True)
+                query_ = query_.join(subq, attr_name, aliased=True).filter(model.id == id_)
 
         return query_
 
