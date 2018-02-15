@@ -72,10 +72,15 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     created_on = db.Column(db.DateTime, server_default=db.func.now())
-    num_posts = column_property(
-        db.select([db.func.count(posts_tags.c.posts_id).label("num_posts")])
-        .where(posts_tags.c.tags_id == id).correlate_except(Post)
-        .label("total_tags")
-    )
+
+    @hybrid_property
+    def num_posts(self):
+        return len(self.posts)
+
+    @num_posts.expression
+    def num_posts(cls):
+        db.session.query(cls.posts, db.func.count(
+            posts_tags.c.posts_id)).where(posts_tags.c.tags_id == id)
+            
     def __repr__(self):
         return '<Tag: {}>'.format(self.name)
