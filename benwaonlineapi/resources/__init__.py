@@ -1,7 +1,3 @@
-# 1. from packagePy import *
-
-# 2. __all__ = [“module1”, “module2”, module2]
-
 from benwaonlineapi.resources.resources import (
     PostDetail, PostList, PostRelationship,
     TagDetail, TagList, TagRelationship,
@@ -9,7 +5,7 @@ from benwaonlineapi.resources.resources import (
     ImageDetail, ImageList, ImageRelationship,
     PreviewDetail, PreviewList, PreviewRelationship,
     CommentDetail, CommentList, CommentRelationship,
-    LikeList, LikeRelationship
+    LikeRelationship
 )
 
 __all__ = [
@@ -28,6 +24,5 @@ __all__ = [
     'CommentDetail',
     'CommentList',
     'CommentRelationship',
-    'LikeList',
     'LikeRelationship'
 ]

@@ -95,8 +95,6 @@ class UserSchema(Schema):
         type_='likes',
         self_view='api.users_likes',
         self_view_kwargs={'id': '<id>'},
-        related_kwargs='api.posts_list',
-        related_view_kwargs={Meta.type_ + '_id': '<id>'},
         many=True,
         include_resource_linkage=True,
         schema='PostSchema'
@@ -169,8 +167,6 @@ class PostSchema(Schema):
         type_='likes',
         self_view='api.posts_likes',
         self_view_kwargs={'id': '<id>'},
-        related_view='api.likes_list',
-        related_view_kwargs={Meta.type_ + '_id': '<id>'},
         many=True,
         include_resource_linkage=True,
         schema='UserSchema'
@@ -180,9 +176,6 @@ class LikesSchema(Schema):
     id = fields.Int()
     class Meta:
         type_ = 'likes'
-        self_view = 'api.likes_list'
-        self_view_kwargs = {'id': '<id>'}
-        self_view_many = 'api.likes_list'
 
 class TagSchema(Schema):
     id = fields.String()

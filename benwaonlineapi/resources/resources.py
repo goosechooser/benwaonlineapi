@@ -26,7 +26,6 @@ def get_class_by_tablename(tablename):
 
 class BaseList(ResourceList):
     view_kwargs = True
-    attrs = {}
 
     @processors.authenticate
     def before_post(self, *args, **kwargs):
@@ -99,6 +98,44 @@ class BaseRelationship(ResourceRelationship):
         pass
 
 class PostList(BaseList):
+    def query(self, view_kwargs):
+        ''' Constructs the base query
+        Args:
+            view_kwargs (dict): kwargs from the resource view
+
+        Returns:
+            A query I presume.
+        '''
+        id_ = view_kwargs.get('id')
+        type_ = view_kwargs.get('type_')
+        query_ = self.session.query(self.model)
+
+        if type_ == 'likes':
+            model = models.User
+            subq = self.session.query(model).subquery()
+            attr_name = self.attrs.get(type_, type_)
+
+            query_ = query_.join(
+                subq, attr_name, aliased=True).filter(model.id == id_)
+
+            return query_
+
+        elif type_:
+            model = get_class_by_tablename(type_[:-1])
+            try:
+                self.session.query(model).filter_by(id=id_).one()
+            except NoResultFound:
+                raise ObjectNotFound(
+                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
+            else:
+                subq = self.session.query(model).subquery()
+                attr_name = self.attrs.get(type_, type_)
+
+                query_ = query_.join(
+                    subq, attr_name, aliased=True).filter(model.id == id_)
+
+        return query_
+
     schema = schemas.PostSchema
     data_layer = {
         'session': db.session,
@@ -111,7 +148,7 @@ class PostList(BaseList):
         'methods':
         {
             'before_get_collection': BaseList.before_get_collection,
-            'query': BaseList.query
+            'query': query
         }
     }
 
@@ -146,66 +183,6 @@ class PostRelationship(BaseRelationship):
         'model': models.Post,
     }
 
-class LikeList(BaseList):
-    schema = schemas.LikesSchema
-
-    def before_get_collection(self, qs, view_kwargs):
-        temp = {}
-        for k, v in view_kwargs.items():
-            splits = k.split('_')
-            try:
-                temp['type_'] = splits[0]
-                temp['id'] = v
-            except KeyError:
-                pass
-        try:
-            view_kwargs['type_'] = temp['type_']
-            view_kwargs['id'] = temp['id']
-        except KeyError:
-            pass
-
-
-    def query(self, view_kwargs):
-        ''' Constructs the base query
-        Args:
-            view_kwargs (dict): kwargs from the resource view
-
-        Returns:
-            A query I presume.
-        '''
-        id_ = view_kwargs.get('id')
-        type_ = view_kwargs.get('type_')
-
-        if type_ == 'users':
-            query_ = self.session.query(models.Post)
-            model = models.User
-            filter_ = models.likes_posts.c.user_id == id_
-
-        if type_ == 'posts':
-            query_ = self.session.query(models.User)
-            model = models.Post
-            filter_ = models.likes_posts.c.posts_id == id_
-
-        try:
-            self.session.query(model).filter_by(id=id_).one()
-        except NoResultFound:
-            raise ObjectNotFound(
-                {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-
-        query_ = query_.join(models.likes_posts).join(model).filter(filter_)
-
-        return query_
-
-    data_layer = {
-        'session': db.session,
-        'model': models.Post,
-        'attrs': {},
-        'methods':
-        {
-            'before_get_collection': before_get_collection,
-            'query': query
-        }
-    }
 
 class LikeRelationship(BaseRelationship):
     schema = schemas.LikesSchema
@@ -243,12 +220,52 @@ class UserList(BaseList):
         processors.remove_id(kwargs['data'])
         processors.username_preproc(kwargs['data'])
 
+    def query(self, view_kwargs):
+        ''' Constructs the base query
+        Args:
+            view_kwargs (dict): kwargs from the resource view
+
+        Returns:
+            A query I presume.
+        '''
+        id_ = view_kwargs.get('id')
+        type_ = view_kwargs.get('type_')
+        query_ = self.session.query(self.model)
+
+        if type_ == 'likes':
+            model = models.Post
+            subq = self.session.query(model).subquery()
+            attr_name = self.attrs.get(type_, type_)
+
+            query_ = query_.join(
+                subq, attr_name, aliased=True).filter(model.id == id_)
+            return query_
+
+        elif type_:
+            model = get_class_by_tablename(type_[:-1])
+            try:
+                self.session.query(model).filter_by(id=id_).one()
+            except NoResultFound:
+                raise ObjectNotFound(
+                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
+            else:
+                subq = self.session.query(model).subquery()
+                attr_name = self.attrs.get(type_, type_)
+
+                query_ = query_.join(
+                    subq, attr_name, aliased=True).filter(model.id == id_)
+
+        return query_
+
+
     schema = schemas.UserSchema
     data_layer = {
+        'attrs': {},
         'session': db.session,
         'model': models.User,
         'methods': {
-            'query': BaseList.query,
+            'before_get_collection': BaseList.before_get_collection,
+            'query': query,
         }
     }
 
