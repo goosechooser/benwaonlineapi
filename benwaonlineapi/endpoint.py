@@ -43,8 +43,6 @@ class EndpointFactory(object):
 
         self.memoize_view(resource, related_view, related_url)
 
-            # related['urls'].append(related_url)
-
     def memoize_view(self, resource, view, url):
         try:
             self.memo.get(view)['urls'].append(url)
