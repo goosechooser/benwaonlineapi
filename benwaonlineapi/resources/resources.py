@@ -72,7 +72,7 @@ class BaseList(ResourceList):
 
                 query_ = query_.join(
                     subq, attr_name, aliased=True).filter(model.id == id_)
-
+                    
         return query_
 
 class BaseDetail(ResourceDetail):
@@ -398,7 +398,10 @@ class CommentList(BaseList):
             'posts': 'post',
             'users': 'user'
         },
-        'methods': {'query': BaseList.query}
+        'methods': {
+            'before_get_collection': BaseList.before_get_collection,
+            'query': BaseList.query
+        }
     }
 
 class CommentDetail(BaseDetail):
