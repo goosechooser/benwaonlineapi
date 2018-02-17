@@ -4,8 +4,8 @@ from flask import Flask, g, url_for, request, flash, redirect, jsonify
 from sqlalchemy import create_engine
 
 from benwaonlineapi.config import app_config
-from benwaonlineapi.database import db
-from benwaonlineapi.api import api, manager
+from benwaonlineapi.database import db, migrate
+from benwaonlineapi.manager import manager
 from benwaonlineapi import models
 
 def setup_logger_handlers(loggers):
@@ -29,8 +29,8 @@ def create_app(config_name=None):
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)
+    migrate.init_app(app, db)
     manager.init_app(app)
-    app.register_blueprint(api)
 
     @app.cli.command()
     def initdb():

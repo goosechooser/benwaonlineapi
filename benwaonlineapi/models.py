@@ -6,6 +6,10 @@ posts_tags = db.Table('posts_tags',
                        db.Column('posts_id', db.Integer, db.ForeignKey('post.id')),
                        db.Column('tags_id', db.Integer, db.ForeignKey('tag.id')))
 
+likes_posts = db.Table('likes_posts',
+                        db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                        db.Column('posts_id', db.Integer, db.ForeignKey('post.id')))
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -13,8 +17,8 @@ class User(db.Model):
     user_id = db.Column(db.String(64), unique=True)
     username = db.Column(db.String(64))
     active = db.Column(db.Boolean(), default=True)
-    comments = db.relationship('Comment', backref='user', lazy='dynamic')
-    posts = db.relationship('Post', backref='user', lazy='dynamic')
+    comments = db.relationship('Comment', backref='user')
+    posts = db.relationship('Post', backref='user')
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)
@@ -57,9 +61,10 @@ class Post(db.Model):
     created_on = db.Column(db.DateTime, server_default=db.func.now())
     image = db.relationship('Image', uselist=False, backref='post')
     preview = db.relationship('Preview', uselist=False, backref='post')
-    comments = db.relationship('Comment', backref='post', lazy='dynamic')
-    tags = db.relationship('Tag', secondary=posts_tags, backref='posts', lazy='dynamic')
+    comments = db.relationship('Comment', backref='post')
+    tags = db.relationship('Tag', secondary=posts_tags, backref='posts')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    likes = db.relationship('User', secondary=likes_posts, backref='likes')
 
 class Tag(db.Model):
     __tablename__ = 'tag'
@@ -67,16 +72,14 @@ class Tag(db.Model):
     name = db.Column(db.String(255))
     created_on = db.Column(db.DateTime, server_default=db.func.now())
 
-    def __repr__(self):
-        return '<Tag: {}>'.format(self.name)
-
     @hybrid_property
     def num_posts(self):
         return len(self.posts)
 
     @num_posts.expression
-    def _num_posts_expression(cls):
-        return (db.select([db.func.count(posts_tags.c.posts_id).label("num_posts")])
-                .where(posts_tags.c.tags_id == cls.id)
-                .label("total_tags")
-                )
+    def num_posts(cls):
+        db.session.query(cls.posts, db.func.count(
+            posts_tags.c.posts_id)).where(posts_tags.c.tags_id == id)
+
+    def __repr__(self):
+        return '<Tag: {}>'.format(self.name)

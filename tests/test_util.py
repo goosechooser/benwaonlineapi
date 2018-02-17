@@ -3,7 +3,7 @@ import json
 
 import pytest
 from jose import jwt, exceptions
-from flask_restless.views.base import ProcessingException
+from flask_rest_jsonapi.exceptions import JsonApiException
 from flask import url_for
 
 from benwaonlineapi import util
@@ -49,7 +49,7 @@ def test_verify_token_invalid_signature(jwks):
     token = generate_jwt(claims)
 
     jwks['keys'][0]['kid'] = 'invalid'
-    with pytest.raises(ProcessingException):
+    with pytest.raises(JsonApiException):
         util.verify_token(token, jwks)
 
 def test_verify_token_invalid_audience(jwks):
@@ -59,7 +59,7 @@ def test_verify_token_invalid_audience(jwks):
     }
     token = generate_jwt(claims)
 
-    with pytest.raises(ProcessingException) as excinfo:
+    with pytest.raises(JsonApiException) as excinfo:
         util.verify_token(token, jwks)
 
 def test_verify_token_invalid_issuer(jwks):
@@ -68,7 +68,7 @@ def test_verify_token_invalid_issuer(jwks):
         'aud': API_AUDIENCE
     }
     token = generate_jwt(claims)
-    with pytest.raises(ProcessingException):
+    with pytest.raises(JsonApiException):
         util.verify_token(token, jwks)
 
 def test_verify_token_expired(jwks):
@@ -83,5 +83,5 @@ def test_verify_token_expired(jwks):
         'exp': exp_at.total_seconds()
     }
     token = generate_jwt(claims)
-    with pytest.raises(ProcessingException):
+    with pytest.raises(JsonApiException):
         util.verify_token(token, jwks)
