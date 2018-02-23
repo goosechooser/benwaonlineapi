@@ -24,6 +24,21 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+def split_type_id(view_kwargs):
+    temp = {}
+    for k, v in view_kwargs.items():
+        splits = k.split('_')
+        try:
+            temp['type_'] = splits[0]
+            temp['id'] = v
+        except KeyError:
+            pass
+    try:
+        view_kwargs['type_'] = temp['type_']
+        view_kwargs['id'] = temp['id']
+    except KeyError:
+        pass
+
 class BaseList(ResourceList):
     view_kwargs = True
 
@@ -33,19 +48,7 @@ class BaseList(ResourceList):
         pass
 
     def before_get_collection(self, qs, view_kwargs):
-        temp = {}
-        for k,v in view_kwargs.items():
-            splits = k.split('_')
-            try:
-                temp['type_'] = splits[0]
-                temp['id'] = v
-            except KeyError:
-                pass
-        try:
-            view_kwargs['type_'] = temp['type_']
-            view_kwargs['id'] = temp['id']
-        except KeyError:
-            pass
+        split_type_id(view_kwargs)
 
     def query(self, view_kwargs):
         ''' Constructs the base query
@@ -72,7 +75,7 @@ class BaseList(ResourceList):
 
                 query_ = query_.join(
                     subq, attr_name, aliased=True).filter(model.id == id_)
-                    
+
         return query_
 
 class BaseDetail(ResourceDetail):
@@ -83,6 +86,30 @@ class BaseDetail(ResourceDetail):
     @processors.authenticate
     def before_delete(self, *args, **kwargs):
         pass
+
+    def before_get_object(self, view_kwargs):
+        split_type_id(view_kwargs)
+
+        id_ = view_kwargs.get('id')
+        type_ = view_kwargs.get('type_')
+
+        if type_:
+            model = get_class_by_tablename(type_[:-1])
+
+            try:
+                result = self.session.query(model).filter_by(id=id_).one()
+            except NoResultFound:
+                raise ObjectNotFound({'parameter': 'comments_id'}, "Comment: {} not found".format(id_))
+            else:
+                if result.post is not None:
+                    view_kwargs['id'] = result.post.id
+                else:
+                    view_kwargs['id'] = None
+
+    def after_get_object(self, obj, view_kwargs):
+        if not obj:
+            raise ObjectNotFound({'parameter': 'id'},
+                                 "{}: {} not found".format(self.model.__tablename__, view_kwargs['id']))
 
 class BaseRelationship(ResourceRelationship):
     @processors.authenticate
@@ -153,26 +180,13 @@ class PostList(BaseList):
     }
 
 class PostDetail(BaseDetail):
-    def before_get_object(self, view_kwargs):
-        if view_kwargs.get('comments_id') is not None:
-            try:
-                comment = self.session.query(models.Comment).filter_by(
-                    id=view_kwargs['comments_id']).one()
-            except NoResultFound:
-                raise ObjectNotFound({'parameter': 'comments_id'},
-                                     "Comment: {} not found".format(view_kwargs['comments_id']))
-            else:
-                if comment.post is not None:
-                    view_kwargs['id'] = comment.post.id
-                else:
-                    view_kwargs['id'] = None
-
     schema = schemas.PostSchema
     data_layer = {
         'session': db.session,
         'model': models.Post,
         'methods': {
-            'before_get_object': before_get_object,
+            'before_get_object': BaseDetail.before_get_object,
+            'after_get_object': BaseDetail.after_get_object
         }
     }
 
@@ -182,7 +196,6 @@ class PostRelationship(BaseRelationship):
         'session': db.session,
         'model': models.Post,
     }
-
 
 class LikeRelationship(BaseRelationship):
     schema = schemas.LikesSchema
@@ -204,7 +217,10 @@ class TagDetail(BaseDetail):
     schema = schemas.TagSchema
     data_layer = {
         'session': db.session,
-        'model': models.Tag
+        'model': models.Tag,
+        'methods': {
+            'after_get_object': BaseDetail.after_get_object
+        }
     }
 
 class TagRelationship(BaseRelationship):
@@ -301,7 +317,10 @@ class UserDetail(BaseDetail):
     data_layer = {
         'session': db.session,
         'model': models.User,
-        'methods': {'before_get_object': before_get_object}
+        'methods': {
+            'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
+        }
     }
 
 class UserRelationship(BaseRelationship):
@@ -339,7 +358,8 @@ class ImageDetail(BaseDetail):
         'session': db.session,
         'model': models.Image,
         'methods': {
-            'before_get_object': before_get_object
+            'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
         }
     }
 
@@ -378,7 +398,8 @@ class PreviewDetail(BaseDetail):
         'session': db.session,
         'model': models.Preview,
         'methods': {
-            'before_get_object': before_get_object
+            'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
         }
     }
 
