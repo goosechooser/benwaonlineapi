@@ -38,6 +38,23 @@ def create_app(config_name=None):
         init_db(app)
         init_tags(db.session)
 
+    @app.cli.command()
+    def list_routes():
+        import urllib
+        output = []
+        for rule in app.url_map.iter_rules():
+            options = {}
+            for arg in rule.arguments:
+                options[arg] = "[{0}]".format(arg)
+
+            methods = ','.join(rule.methods)
+            line = urllib.parse.unquote("{:50s} {:20s} {}".format(
+                rule.endpoint, methods, rule))
+            output.append(line)
+
+        for line in sorted(output):
+            print(line)
+
     return app
 
 def init_db(app):
