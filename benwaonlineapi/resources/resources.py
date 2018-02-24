@@ -137,18 +137,8 @@ class PostList(BaseList):
         type_ = view_kwargs.get('type_')
         query_ = self.session.query(self.model)
 
-        if type_ == 'likes':
-            model = models.User
-            subq = self.session.query(model).subquery()
-            attr_name = self.attrs.get(type_, type_)
-
-            query_ = query_.join(
-                subq, attr_name, aliased=True).filter(model.id == id_)
-
-            return query_
-
-        elif type_:
-            model = get_class_by_tablename(type_[:-1])
+        if type_:
+            model = models.User if type_ == 'likes' else get_class_by_tablename(type_[:-1])
             try:
                 self.session.query(model).filter_by(id=id_).one()
             except NoResultFound:
@@ -248,17 +238,9 @@ class UserList(BaseList):
         type_ = view_kwargs.get('type_')
         query_ = self.session.query(self.model)
 
-        if type_ == 'likes':
-            model = models.Post
-            subq = self.session.query(model).subquery()
-            attr_name = self.attrs.get(type_, type_)
+        if type_:
+            model = models.Post if type_ == 'likes' else get_class_by_tablename(type_[:-1])
 
-            query_ = query_.join(
-                subq, attr_name, aliased=True).filter(model.id == id_)
-            return query_
-
-        elif type_:
-            model = get_class_by_tablename(type_[:-1])
             try:
                 self.session.query(model).filter_by(id=id_).one()
             except NoResultFound:
