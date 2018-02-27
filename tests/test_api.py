@@ -31,7 +31,7 @@ def generate_jwt(claims):
         'kid': 'benwaonline_api_test'
     }
     return jwt.encode(claims, PRIV_KEY, algorithm='RS256', headers=headers)
-    
+
 # IT TURNS OUT THE DATA FORMAT IS CHECKED FIRST
 # SO YOU CANT SEND A POST WITH NOTHING
 # BECAUSE YOU'LL GET AN ERROR
@@ -145,7 +145,7 @@ def test_authenticate(client, session):
     claims = {
         'iss': ISSUER,
         'aud': API_AUDIENCE,
-        'sub': '6969',
+        'sub': '696969',
         'iat': now.total_seconds(),
         'exp': exp_at.total_seconds()
     }
@@ -155,22 +155,21 @@ def test_authenticate(client, session):
     user = schemas.UserSchema().dumps({
         "id": "420",
         "username": "Beautiful Benwa Aficionado",
-        "relationships": {
-            "likes": {
-                "data": []
-            }
-        }
+        # "relationships": {
+        #     "likes": {
+        #         "data": []
+        #     }
+        # }
     }).data
 
     with requests_mock.Mocker() as mock:
         mock.get(current_app.config['JWKS_URL'], json=JWKS)
-        resp = client.post(url_for('api.users_list') + '?include=likes',
-                           headers=headers, data=user)
+        resp = client.post(url_for('api.users_list'), headers=headers, data=user)
 
     assert resp.status_code == 201
     user = schemas.UserSchema().load(resp.json).data
     assert user['id'] != 420
-    assert user['user_id'] == '6969'
+    assert user['user_id'] == '696969'
     resp = client.get(url_for('api.users_likes', id=1),
                        headers=headers)
 
@@ -183,7 +182,7 @@ def test_create_post_with_tags(client, session):
     claims = {
         'iss': ISSUER,
         'aud': API_AUDIENCE,
-        'sub': '6969',
+        'sub': '696969',
         'iat': now.total_seconds(),
         'exp': exp_at.total_seconds()
     }
@@ -192,6 +191,7 @@ def test_create_post_with_tags(client, session):
     headers['Authorization'] = 'Bearer ' + token
     post = schemas.PostSchema().dumps({
         "id": "420",
+        "title": "why are you doing this",
         "tags": [
                 {
                     'type': 'tags',
@@ -212,3 +212,26 @@ def test_create_post_with_tags(client, session):
         assert resp.status_code == 200
         resp = client.get('/api/posts/1/relationships/tags', headers=headers)
         assert resp.status_code == 200
+
+def test_delete_post(client, session):
+    now = (datetime.utcnow() - datetime(1970, 1, 1))
+    exp_at = now + timedelta(seconds=69)
+
+    claims = {
+        'iss': ISSUER,
+        'aud': API_AUDIENCE,
+        'sub': '696969',
+        'iat': now.total_seconds(),
+        'exp': exp_at.total_seconds()
+    }
+
+    token = generate_jwt(claims)
+    headers['Authorization'] = 'Bearer ' + token
+
+    with requests_mock.Mocker() as mock:
+        mock.get(current_app.config['JWKS_URL'], json=JWKS)
+        resp = client.delete(url_for('api.posts_detail', id=2), headers=headers)
+        assert resp.status_code == 200
+
+        resp = client.get('/api/posts/2', headers=headers)
+        assert resp.status_code == 404
