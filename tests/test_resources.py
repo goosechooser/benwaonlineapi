@@ -104,7 +104,7 @@ class TestResourceListSuite(object):
     def resource(self, request):
         return request.param
 
-    def test_base_url(self, client, resource):
+    def test_base_url(self, client, resource, session):
         response = client.get(resource.base_url)
         assert response.status_code == 200
 
@@ -112,7 +112,7 @@ class TestResourceListSuite(object):
         (1, 200),
         (420, 404)
     ])
-    def test_related_urls(self, client, resource, id_, status_code):
+    def test_related_urls(self, client, resource, id_, status_code, session):
         for url in resource.related_urls:
             response = client.get(url.format(id=id_))
             assert response.status_code == status_code
@@ -121,7 +121,7 @@ class TestResourceListSuite(object):
         (1, False),
         (420, True)
     ])
-    def test_schema_format_related_urls(self, client, resource, id_, has_errors):
+    def test_schema_format_related_urls(self, client, resource, id_, has_errors, session):
         for url in resource.related_urls:
             response = client.get(url.format(id=id_))
             errors = resource.schema(many=True).load(response.json).errors
