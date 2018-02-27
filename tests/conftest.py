@@ -14,11 +14,13 @@ def app():
 @pytest.fixture(scope='session')
 def db(app):
     _db.app = app
-    _db.drop_all()
     _db.create_all()
     setup_db(_db.session)
 
     yield _db
+
+    _db.session.close_all()
+    _db.drop_all()
 
 @pytest.fixture(scope='function')
 def session(db):
