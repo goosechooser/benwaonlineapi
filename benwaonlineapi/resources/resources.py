@@ -183,9 +183,6 @@ class PostRelationship(BaseRelationship):
         'model': models.Post,
     }
 
-class LikeRelationship(BaseRelationship):
-    schema = schemas.LikesSchema
-
 class TagList(BaseList):
     schema = schemas.TagSchema
     data_layer = {

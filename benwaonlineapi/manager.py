@@ -8,7 +8,6 @@ from benwaonlineapi.resources import (
     PreviewDetail, PreviewList, PreviewRelationship,
     ImageDetail, ImageList, ImageRelationship,
     CommentDetail, CommentList, CommentRelationship,
-    LikeRelationship
 )
 
 def make_endpoints(resources, endpoint_factory=None, additional=None):
@@ -33,7 +32,7 @@ resources = [
     PreviewDetail, PreviewList, ImageDetail,
     ImageList, CommentDetail, CommentList,
     PreviewRelationship, ImageRelationship, CommentRelationship,
-    UserRelationship, PostRelationship, TagRelationship, LikeRelationship
+    UserRelationship, PostRelationship, TagRelationship
 ]
 
 additional = {
