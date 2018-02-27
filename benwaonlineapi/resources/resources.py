@@ -87,25 +87,6 @@ class BaseDetail(ResourceDetail):
     def before_delete(self, *args, **kwargs):
         pass
 
-    def before_get_object(self, view_kwargs):
-        split_type_id(view_kwargs)
-
-        id_ = view_kwargs.get('id')
-        type_ = view_kwargs.get('type_')
-
-        if type_:
-            model = get_class_by_tablename(type_[:-1])
-
-            try:
-                result = self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound({'parameter': 'comments_id'}, "Comment: {} not found".format(id_))
-            else:
-                if result.post is not None:
-                    view_kwargs['id'] = result.post.id
-                else:
-                    view_kwargs['id'] = None
-
     def after_get_object(self, obj, view_kwargs):
         if not obj:
             raise ObjectNotFound({'parameter': 'id'},
@@ -139,6 +120,7 @@ class PostList(BaseList):
 
         if type_:
             model = models.User if type_ == 'likes' else get_class_by_tablename(type_[:-1])
+
             try:
                 self.session.query(model).filter_by(id=id_).one()
             except NoResultFound:
@@ -170,12 +152,26 @@ class PostList(BaseList):
     }
 
 class PostDetail(BaseDetail):
+    def before_get_object(self, view_kwargs):
+        if view_kwargs.get('comments_id') is not None:
+            try:
+                comment = self.session.query(models.Comment).filter_by(
+                    id=view_kwargs['comments_id']).one()
+            except NoResultFound:
+                raise ObjectNotFound({'parameter': 'comments_id'},
+                                     "Comment: {} not found".format(view_kwargs['comments_id']))
+            else:
+                if comment.post is not None:
+                    view_kwargs['id'] = comment.post.id
+                else:
+                    view_kwargs['id'] = None
+
     schema = schemas.PostSchema
     data_layer = {
         'session': db.session,
         'model': models.Post,
         'methods': {
-            'before_get_object': BaseDetail.before_get_object,
+            'before_get_object': before_get_object,
             'after_get_object': BaseDetail.after_get_object
         }
     }
@@ -271,8 +267,7 @@ class UserDetail(BaseDetail):
     def before_get_object(self, view_kwargs):
         if view_kwargs.get('comments_id') is not None:
             try:
-                comment = self.session.query(models.Comment).filter_by(
-                    id=view_kwargs['comments_id']).one()
+                comment = self.session.query(models.Comment).filter_by(id=view_kwargs['comments_id']).one()
             except NoResultFound:
                 raise ObjectNotFound({'parameter': 'comments_id'},
                                      "Comment: {} not found".format(view_kwargs['comments_id']))
