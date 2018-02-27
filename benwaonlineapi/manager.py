@@ -24,8 +24,6 @@ def make_endpoints(resources, endpoint_factory=None, additional=None):
             except TypeError:
                 pass
 
-        del endpoint_factory.memo['likes_list']
-        
         return endpoint_factory.endpoints
 
 manager = Api(blueprint=Blueprint('api', __name__, url_prefix='/api'))

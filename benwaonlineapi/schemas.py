@@ -92,7 +92,7 @@ class UserSchema(Schema):
     )
 
     likes = Relationship(
-        type_='likes',
+        type_='posts',
         self_view='api.users_likes',
         self_view_kwargs={'id': '<id>'},
         many=True,
@@ -164,7 +164,7 @@ class PostSchema(Schema):
     )
 
     likes = Relationship(
-        type_='likes',
+        type_='users',
         self_view='api.posts_likes',
         self_view_kwargs={'id': '<id>'},
         many=True,
@@ -178,7 +178,7 @@ class LikesSchema(Schema):
         type_ = 'likes'
 
 class TagSchema(Schema):
-    id = fields.String()
+    id = fields.Int()
     name = fields.String()
     created_on = fields.DateTime()
     num_posts = fields.Int()
