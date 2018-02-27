@@ -1,7 +1,6 @@
 import operator
 import re
 import pytest
-from pytest_lazyfixture import lazy_fixture
 
 from flask import url_for, current_app
 from benwaonlineapi import schemas
@@ -9,19 +8,6 @@ from benwaonlineapi import models
 from benwaonlineapi.manager import manager
 
 from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationship
-# from benwaonlineapi.resources import (
-#     PostDetail, PostList, PostRelationship,
-#     TagDetail, TagList, TagRelationship,
-#     UserDetail, UserList, UserRelationship,
-#     PreviewDetail, PreviewList, PreviewRelationship,
-#     ImageDetail, ImageList, ImageRelationship,
-#     CommentDetail, CommentList, CommentRelationship,
-#     LikeRelationship
-# )
-
-# resource_lists = [PostList, TagList, UserList, PreviewList, CommentList]
-# resource_details = [PostDetail, TagDetail, UserDetail, PreviewDetail, CommentDetail]
-# resource_relationships = [PostRelationship, TagRelationship, UserRelationship, PreviewRelationship, CommentRelationship, LikeRelationship]
 
 # notes:
 # Can parametrize the entire class - but tests MUST use the param
