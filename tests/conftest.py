@@ -1,8 +1,24 @@
 import pytest
+import json
 
 from benwaonlineapi import create_app
 from benwaonlineapi import models
 from benwaonlineapi.database import db as _db
+
+@pytest.fixture(scope='session')
+def jwks():
+    with open('keys/test_jwks.json', 'r') as f:
+        _jwks = json.load(f)
+
+    yield _jwks
+
+@pytest.fixture(scope='session')
+def priv_key():
+    fname = 'keys/benwaonline_api_test_priv.pem'
+    with open(fname, 'r') as f:
+        _priv_key = f.read()
+
+    yield _priv_key
 
 @pytest.fixture(scope='session')
 def app():
