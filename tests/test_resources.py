@@ -8,9 +8,8 @@ from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationshi
 
 from benwaonlineapi import schemas
 from benwaonlineapi import models
-# from benwaonlineapi.resources import UserList, PostList, TagList
 from benwaonlineapi.manager import manager
-from tests.helpers import generate_jwt
+from benwaonlineapi.tests.helpers import generate_jwt
 
 # notes:
 # Can parametrize the entire class - but tests MUST use the param
