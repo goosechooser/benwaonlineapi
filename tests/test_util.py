@@ -7,7 +7,6 @@ from jose import exceptions, jwt
 
 from benwaonlineapi import util
 from flask_rest_jsonapi.exceptions import JsonApiException
-from helpers import generate_jwt
 
 ISSUER = 'issuer'
 API_AUDIENCE = 'audience'
