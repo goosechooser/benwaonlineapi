@@ -6,24 +6,23 @@ from benwaonlineapi.database import db as _db
 
 @pytest.fixture(scope='session')
 def app():
-    app = create_app('test')
+    _app = create_app('test')
 
-    with app.app_context():
-        yield app
+    with _app.app_context():
+        yield _app
 
 @pytest.fixture(scope='session')
 def db(app):
     _db.app = app
     _db.create_all()
-    setup_db(_db.session)
 
     yield _db
 
     _db.session.close_all()
     _db.drop_all()
 
-@pytest.fixture(scope='function')
-def session(db):
+@pytest.fixture(scope='function', autouse=True)
+def db_session(db):
     connection = db.engine.connect()
     transaction = connection.begin()
 
