@@ -59,7 +59,7 @@ def test_verify_token_invalid_audience(jwks):
     }
     token = generate_jwt(claims)
 
-    with pytest.raises(JsonApiException) as excinfo:
+    with pytest.raises(JsonApiException):
         util.verify_token(token, jwks)
 
 def test_verify_token_invalid_issuer(jwks):
