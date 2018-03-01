@@ -39,21 +39,9 @@ def create_app(config_name=None):
         init_tags(db.session)
 
     @app.cli.command()
-    def list_routes():
-        import urllib
-        output = []
-        for rule in app.url_map.iter_rules():
-            options = {}
-            for arg in rule.arguments:
-                options[arg] = "[{0}]".format(arg)
-
-            methods = ','.join(rule.methods)
-            line = urllib.parse.unquote("{:50s} {:20s} {}".format(
-                rule.endpoint, methods, rule))
-            output.append(line)
-
-        for line in sorted(output):
-            print(line)
+    def routes():
+        """List all the routes registered."""
+        list_routes(app)
 
     return app
 
@@ -72,3 +60,19 @@ def init_tags(session):
     session.add(tag)
 
     session.commit()
+
+def list_routes(app):
+    import urllib
+    output = []
+    for rule in app.url_map.iter_rules():
+        options = {}
+        for arg in rule.arguments:
+            options[arg] = "[{0}]".format(arg)
+
+        methods = ','.join(rule.methods)
+        line = urllib.parse.unquote("{:50s} {:20s} {}".format(
+            rule.endpoint, methods, rule))
+        output.append(line)
+
+    for line in sorted(output):
+        print(line)
