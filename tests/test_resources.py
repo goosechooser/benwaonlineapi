@@ -3,17 +3,18 @@ from datetime import datetime, timedelta
 import requests
 import requests_mock
 import pytest
-from flask import url_for, current_app, json
+from flask import url_for, current_app
 from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationship
 
 from benwaonlineapi import schemas
 from benwaonlineapi import models
 from benwaonlineapi.manager import manager
-from benwaonlineapi.tests.helpers import generate_jwt
+from tests.helpers import generate_jwt
 
 # notes:
 # Can parametrize the entire class - but tests MUST use the param
-# Fixtures go inside the test class - UNLESS YOU USE THEM IN LAZY FIXTURE I GUESS
+# Fixtures go inside the test class
+# Fixtures can also be outside the test class with @pytest.mark.usefixtures()
 
 def format_url(url):
         url = re.sub('<[^>]+>', '{id}', url)
@@ -39,9 +40,6 @@ def categorize_urls(urls, schema):
 
     return base_url[0], related_urls
 
-with open('keys/test_jwks.json', 'r') as f:
-    JWKS = json.load(f)
-
 @pytest.fixture(scope='session')
 def headers():
     now = (datetime.utcnow() - datetime(1970, 1, 1))
@@ -64,9 +62,9 @@ def headers():
     return _headers
 
 @pytest.fixture(scope='session')
-def req_mock():
+def req_mock(jwks):
     with requests_mock.Mocker(real_http=True) as mock:
-        mock.get(current_app.config['JWKS_URL'], json=JWKS)
+        mock.get(current_app.config['JWKS_URL'], json=jwks)
         yield mock
 
 @pytest.fixture(scope='session')
@@ -147,8 +145,6 @@ def posts(app, headers, req_mock, tags, previews, images, user):
 
     with app.test_client() as client:
         resp = client.post(url_for('api.posts_list') + '?include=tags,image,preview,user', headers=headers, data=post)
-    print('post resp', resp.json)
-    print('post data', resp.json['data'])
     data = resp.json['data']
 
     yield data

@@ -79,8 +79,7 @@ class BaseDetail(ResourceDetail):
 
     def after_get_object(self, obj, view_kwargs):
         if not obj:
-            raise ObjectNotFound({'parameter': 'id'},
-                                 "{}: {} not found".format(self.model.__tablename__, view_kwargs['id']))
+            raise ObjectNotFound({'parameter': 'id'}, "{}: {} not found".format(self.model.__tablename__, view_kwargs['id']))
 
 class BaseRelationship(ResourceRelationship):
     @processors.authenticate
@@ -413,7 +412,9 @@ class CommentDetail(BaseDetail):
     data_layer = {
         'session': db.session,
         'model': models.Comment,
-        'methods': {'query': query}
+        'methods': {
+            'query': query
+        }
     }
 
 class CommentRelationship(BaseRelationship):
