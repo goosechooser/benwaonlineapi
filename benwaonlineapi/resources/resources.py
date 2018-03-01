@@ -64,17 +64,7 @@ class BaseList(ResourceList):
 
         if type_:
             model = get_class_by_tablename(type_[:-1])
-            try:
-                self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound(
-                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-            else:
-                subq = self.session.query(model).subquery()
-                attr_name = self.attrs.get(type_, type_)
-
-                query_ = query_.join(
-                    subq, attr_name, aliased=True).filter(model.id == id_)
+            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
 
         return query_
 
@@ -105,6 +95,21 @@ class BaseRelationship(ResourceRelationship):
     def before_delete(self, *args, **kwargs):
         pass
 
+def model_query(session, model, id_, type_, attrs, query_):
+    try:
+        session.query(model).filter_by(id=id_).one()
+    except NoResultFound:
+        raise ObjectNotFound(
+            {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
+    else:
+        subq = session.query(model).subquery()
+        attr_name = attrs.get(type_, type_)
+
+        query_ = query_.join(
+            subq, attr_name, aliased=True).filter(model.id == id_)
+
+    return query_
+
 class PostList(BaseList):
     def query(self, view_kwargs):
         ''' Constructs the base query
@@ -120,18 +125,7 @@ class PostList(BaseList):
 
         if type_:
             model = models.User if type_ == 'likes' else get_class_by_tablename(type_[:-1])
-
-            try:
-                self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound(
-                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-            else:
-                subq = self.session.query(model).subquery()
-                attr_name = self.attrs.get(type_, type_)
-
-                query_ = query_.join(
-                    subq, attr_name, aliased=True).filter(model.id == id_)
+            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
 
         return query_
 
@@ -233,18 +227,7 @@ class UserList(BaseList):
 
         if type_:
             model = models.Post if type_ == 'likes' else get_class_by_tablename(type_[:-1])
-
-            try:
-                self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound(
-                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-            else:
-                subq = self.session.query(model).subquery()
-                attr_name = self.attrs.get(type_, type_)
-
-                query_ = query_.join(
-                    subq, attr_name, aliased=True).filter(model.id == id_)
+            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
 
         return query_
 
