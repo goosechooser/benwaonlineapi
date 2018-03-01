@@ -6,7 +6,7 @@ import requests_mock
 from flask import url_for, current_app
 from benwaonlineapi import schemas, models
 from marshmallow import pprint
-from tests.helpers import generate_jwt
+from helpers import generate_jwt
 
 headers = {'Accept': 'application/vnd.api+json',
                 'Content-Type': 'application/vnd.api+json'}
