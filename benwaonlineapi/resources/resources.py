@@ -24,6 +24,36 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+def split_type_id(view_kwargs):
+    temp = {}
+    for k, v in view_kwargs.items():
+        splits = k.split('_')
+        try:
+            temp['type_'] = splits[0]
+            temp['id'] = v
+        except KeyError:
+            pass
+    try:
+        view_kwargs['type_'] = temp['type_']
+        view_kwargs['id'] = temp['id']
+    except KeyError:
+        pass
+
+def model_query(session, model, id_, type_, attrs, query_):
+    try:
+        session.query(model).filter_by(id=id_).one()
+    except NoResultFound:
+        raise ObjectNotFound(
+            {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
+    else:
+        subq = session.query(model).subquery()
+        attr_name = attrs.get(type_, type_)
+
+        query_ = query_.join(
+            subq, attr_name, aliased=True).filter(model.id == id_)
+
+    return query_
+
 class BaseList(ResourceList):
     view_kwargs = True
 
@@ -33,19 +63,7 @@ class BaseList(ResourceList):
         pass
 
     def before_get_collection(self, qs, view_kwargs):
-        temp = {}
-        for k,v in view_kwargs.items():
-            splits = k.split('_')
-            try:
-                temp['type_'] = splits[0]
-                temp['id'] = v
-            except KeyError:
-                pass
-        try:
-            view_kwargs['type_'] = temp['type_']
-            view_kwargs['id'] = temp['id']
-        except KeyError:
-            pass
+        split_type_id(view_kwargs)
 
     def query(self, view_kwargs):
         ''' Constructs the base query
@@ -61,18 +79,8 @@ class BaseList(ResourceList):
 
         if type_:
             model = get_class_by_tablename(type_[:-1])
-            try:
-                self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound(
-                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-            else:
-                subq = self.session.query(model).subquery()
-                attr_name = self.attrs.get(type_, type_)
+            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
 
-                query_ = query_.join(
-                    subq, attr_name, aliased=True).filter(model.id == id_)
-                    
         return query_
 
 class BaseDetail(ResourceDetail):
@@ -83,6 +91,10 @@ class BaseDetail(ResourceDetail):
     @processors.authenticate
     def before_delete(self, *args, **kwargs):
         pass
+
+    def after_get_object(self, obj, view_kwargs):
+        if not obj:
+            raise ObjectNotFound({'parameter': 'id'}, "{}: {} not found".format(self.model.__tablename__, view_kwargs['id']))
 
 class BaseRelationship(ResourceRelationship):
     @processors.authenticate
@@ -110,29 +122,9 @@ class PostList(BaseList):
         type_ = view_kwargs.get('type_')
         query_ = self.session.query(self.model)
 
-        if type_ == 'likes':
-            model = models.User
-            subq = self.session.query(model).subquery()
-            attr_name = self.attrs.get(type_, type_)
-
-            query_ = query_.join(
-                subq, attr_name, aliased=True).filter(model.id == id_)
-
-            return query_
-
-        elif type_:
-            model = get_class_by_tablename(type_[:-1])
-            try:
-                self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound(
-                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-            else:
-                subq = self.session.query(model).subquery()
-                attr_name = self.attrs.get(type_, type_)
-
-                query_ = query_.join(
-                    subq, attr_name, aliased=True).filter(model.id == id_)
+        if type_:
+            model = models.User if type_ == 'likes' else get_class_by_tablename(type_[:-1])
+            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
 
         return query_
 
@@ -173,6 +165,7 @@ class PostDetail(BaseDetail):
         'model': models.Post,
         'methods': {
             'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
         }
     }
 
@@ -182,10 +175,6 @@ class PostRelationship(BaseRelationship):
         'session': db.session,
         'model': models.Post,
     }
-
-
-class LikeRelationship(BaseRelationship):
-    schema = schemas.LikesSchema
 
 class TagList(BaseList):
     schema = schemas.TagSchema
@@ -204,7 +193,10 @@ class TagDetail(BaseDetail):
     schema = schemas.TagSchema
     data_layer = {
         'session': db.session,
-        'model': models.Tag
+        'model': models.Tag,
+        'methods': {
+            'after_get_object': BaseDetail.after_get_object
+        }
     }
 
 class TagRelationship(BaseRelationship):
@@ -232,28 +224,9 @@ class UserList(BaseList):
         type_ = view_kwargs.get('type_')
         query_ = self.session.query(self.model)
 
-        if type_ == 'likes':
-            model = models.Post
-            subq = self.session.query(model).subquery()
-            attr_name = self.attrs.get(type_, type_)
-
-            query_ = query_.join(
-                subq, attr_name, aliased=True).filter(model.id == id_)
-            return query_
-
-        elif type_:
-            model = get_class_by_tablename(type_[:-1])
-            try:
-                self.session.query(model).filter_by(id=id_).one()
-            except NoResultFound:
-                raise ObjectNotFound(
-                    {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-            else:
-                subq = self.session.query(model).subquery()
-                attr_name = self.attrs.get(type_, type_)
-
-                query_ = query_.join(
-                    subq, attr_name, aliased=True).filter(model.id == id_)
+        if type_:
+            model = models.Post if type_ == 'likes' else get_class_by_tablename(type_[:-1])
+            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
 
         return query_
 
@@ -273,8 +246,7 @@ class UserDetail(BaseDetail):
     def before_get_object(self, view_kwargs):
         if view_kwargs.get('comments_id') is not None:
             try:
-                comment = self.session.query(models.Comment).filter_by(
-                    id=view_kwargs['comments_id']).one()
+                comment = self.session.query(models.Comment).filter_by(id=view_kwargs['comments_id']).one()
             except NoResultFound:
                 raise ObjectNotFound({'parameter': 'comments_id'},
                                      "Comment: {} not found".format(view_kwargs['comments_id']))
@@ -301,7 +273,10 @@ class UserDetail(BaseDetail):
     data_layer = {
         'session': db.session,
         'model': models.User,
-        'methods': {'before_get_object': before_get_object}
+        'methods': {
+            'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
+        }
     }
 
 class UserRelationship(BaseRelationship):
@@ -339,7 +314,8 @@ class ImageDetail(BaseDetail):
         'session': db.session,
         'model': models.Image,
         'methods': {
-            'before_get_object': before_get_object
+            'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
         }
     }
 
@@ -378,7 +354,8 @@ class PreviewDetail(BaseDetail):
         'session': db.session,
         'model': models.Preview,
         'methods': {
-            'before_get_object': before_get_object
+            'before_get_object': before_get_object,
+            'after_get_object': BaseDetail.after_get_object
         }
     }
 
@@ -435,7 +412,9 @@ class CommentDetail(BaseDetail):
     data_layer = {
         'session': db.session,
         'model': models.Comment,
-        'methods': {'query': query}
+        'methods': {
+            'query': query
+        }
     }
 
 class CommentRelationship(BaseRelationship):

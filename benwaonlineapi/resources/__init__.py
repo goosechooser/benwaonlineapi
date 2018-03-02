@@ -4,8 +4,7 @@ from benwaonlineapi.resources.resources import (
     UserDetail, UserList, UserRelationship,
     ImageDetail, ImageList, ImageRelationship,
     PreviewDetail, PreviewList, PreviewRelationship,
-    CommentDetail, CommentList, CommentRelationship,
-    LikeRelationship
+    CommentDetail, CommentList, CommentRelationship
 )
 
 __all__ = [
@@ -23,6 +22,5 @@ __all__ = [
     'PreviewRelationship',
     'CommentDetail',
     'CommentList',
-    'CommentRelationship',
-    'LikeRelationship'
+    'CommentRelationship'
 ]

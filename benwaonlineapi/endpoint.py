@@ -3,8 +3,10 @@ from marshmallow_jsonapi.flask import Relationship
 from benwaonlineapi import schemas
 
 class EndpointFactory(object):
-    def __init__(self):
+    def __init__(self, skip=None, additional=None):
         self.memo = {}
+        self.skip = skip or {}
+        self.additional = additional or {}
 
     @property
     def endpoints(self):
@@ -33,6 +35,14 @@ class EndpointFactory(object):
         view = type_ + '_' + related_field_name
         url = '/'.join(['', type_, id_, 'relationships', related_field_name])
         self.memoize_view(resource, view, url)
+
+        try:
+            skip_fields = self.skip[resource]
+        except KeyError:
+            skip_fields = []
+
+        if related_field_name in skip_fields:
+            return
 
         # Add related resource views to other resources
         suffix = 'list' if related_field.many else 'detail'

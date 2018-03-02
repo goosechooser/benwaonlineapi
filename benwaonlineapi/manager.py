@@ -8,12 +8,11 @@ from benwaonlineapi.resources import (
     PreviewDetail, PreviewList, PreviewRelationship,
     ImageDetail, ImageList, ImageRelationship,
     CommentDetail, CommentList, CommentRelationship,
-    LikeRelationship
 )
 
-def make_endpoints(resources, endpoint_factory=None, additional=None):
+def make_endpoints(resources, endpoint_factory=None, skip=None, additional=None):
         if not endpoint_factory:
-            endpoint_factory = EndpointFactory()
+            endpoint_factory = EndpointFactory(skip, additional)
 
         for resource in resources:
             endpoint_factory.make_endpoint(resource)
@@ -24,8 +23,6 @@ def make_endpoints(resources, endpoint_factory=None, additional=None):
             except TypeError:
                 pass
 
-        del endpoint_factory.memo['likes_list']
-        
         return endpoint_factory.endpoints
 
 manager = Api(blueprint=Blueprint('api', __name__, url_prefix='/api'))
@@ -35,13 +32,19 @@ resources = [
     PreviewDetail, PreviewList, ImageDetail,
     ImageList, CommentDetail, CommentList,
     PreviewRelationship, ImageRelationship, CommentRelationship,
-    UserRelationship, PostRelationship, TagRelationship, LikeRelationship
+    UserRelationship, PostRelationship, TagRelationship
 ]
+
+# resource: field
+skip_related = {
+    UserRelationship: ['likes'],
+    PostRelationship: ['likes']
+}
 
 additional = {
     'users_list': '/posts/<int:likes_id>/likes',
     'posts_list': '/users/<int:likes_id>/likes'
 }
 
-endpoints = make_endpoints(resources, additional=additional)
+endpoints = make_endpoints(resources, skip=skip_related, additional=additional)
 manager.resources = endpoints
