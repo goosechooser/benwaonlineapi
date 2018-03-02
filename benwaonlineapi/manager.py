@@ -10,9 +10,9 @@ from benwaonlineapi.resources import (
     CommentDetail, CommentList, CommentRelationship,
 )
 
-def make_endpoints(resources, endpoint_factory=None, additional=None):
+def make_endpoints(resources, endpoint_factory=None, skip=None, additional=None):
         if not endpoint_factory:
-            endpoint_factory = EndpointFactory()
+            endpoint_factory = EndpointFactory(skip, additional)
 
         for resource in resources:
             endpoint_factory.make_endpoint(resource)
@@ -35,10 +35,16 @@ resources = [
     UserRelationship, PostRelationship, TagRelationship
 ]
 
+# resource: field
+skip_related = {
+    UserRelationship: ['likes'],
+    PostRelationship: ['likes']
+}
+
 additional = {
     'users_list': '/posts/<int:likes_id>/likes',
     'posts_list': '/users/<int:likes_id>/likes'
 }
 
-endpoints = make_endpoints(resources, additional=additional)
+endpoints = make_endpoints(resources, skip=skip_related, additional=additional)
 manager.resources = endpoints

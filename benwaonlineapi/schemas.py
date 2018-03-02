@@ -93,8 +93,8 @@ class UserSchema(Schema):
 
     likes = Relationship(
         type_='posts',
-        self_view='api.users_likes',
-        self_view_kwargs={'id': '<id>'},
+        self_view='api.posts_list',
+        self_view_kwargs={'likes_id': '<id>'},
         many=True,
         include_resource_linkage=True,
         schema='PostSchema'
@@ -165,8 +165,8 @@ class PostSchema(Schema):
 
     likes = Relationship(
         type_='users',
-        self_view='api.posts_likes',
-        self_view_kwargs={'id': '<id>'},
+        self_view='api.users_list',
+        self_view_kwargs={'likes_id': '<id>'},
         many=True,
         include_resource_linkage=True,
         schema='UserSchema'

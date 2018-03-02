@@ -39,6 +39,21 @@ def split_type_id(view_kwargs):
     except KeyError:
         pass
 
+def model_query(session, model, id_, type_, attrs, query_):
+    try:
+        session.query(model).filter_by(id=id_).one()
+    except NoResultFound:
+        raise ObjectNotFound(
+            {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
+    else:
+        subq = session.query(model).subquery()
+        attr_name = attrs.get(type_, type_)
+
+        query_ = query_.join(
+            subq, attr_name, aliased=True).filter(model.id == id_)
+
+    return query_
+
 class BaseList(ResourceList):
     view_kwargs = True
 
@@ -93,21 +108,6 @@ class BaseRelationship(ResourceRelationship):
     @processors.authenticate
     def before_delete(self, *args, **kwargs):
         pass
-
-def model_query(session, model, id_, type_, attrs, query_):
-    try:
-        session.query(model).filter_by(id=id_).one()
-    except NoResultFound:
-        raise ObjectNotFound(
-            {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
-    else:
-        subq = session.query(model).subquery()
-        attr_name = attrs.get(type_, type_)
-
-        query_ = query_.join(
-            subq, attr_name, aliased=True).filter(model.id == id_)
-
-    return query_
 
 class PostList(BaseList):
     def query(self, view_kwargs):
