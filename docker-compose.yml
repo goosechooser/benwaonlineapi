@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+    testing:
+        build:
+            context: .
+            target: testing
+        environment:
+            - FLASK_CONFIG=test
+            - MYSQL_HOST=mysql
+            - MYSQL_USER=jenkins
+            - MYSQL_PASSWORD=jenkins
+            - MEMCACHED_HOST=memcached-test
+            - MEMCACHED_PORT=11211
+            - API_URL=http://benwaonline-api
+            - API_PORT=420
+        command: py.test --cov-config .coveragerc --cov=benwaonlineapi --cov-report xml tests/
+        volumes:
+            - ./work_dir:/testing/reports
+
+networks:
+  default:
+    external:
+      name: jenkins-testing
