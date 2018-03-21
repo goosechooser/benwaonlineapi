@@ -9,7 +9,7 @@ from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationshi
 from benwaonlineapi import schemas
 from benwaonlineapi import models
 from benwaonlineapi.manager import manager
-from helpers import generate_jwt
+import utils
 
 # notes:
 # Can parametrize the entire class - but tests MUST use the param
@@ -53,7 +53,7 @@ def headers():
         'exp': exp_at.total_seconds()
     }
 
-    token = generate_jwt(claims)
+    token = utils.generate_jwt(claims)
     _headers = {
         'Accept': 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',

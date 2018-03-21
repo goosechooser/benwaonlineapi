@@ -20,6 +20,7 @@ def generate_jwt(claims, priv_key):
     }
     return jwt.encode(claims, priv_key, algorithm='RS256', headers=headers)
 
+@pytest.mark.usefixtures('cache')
 class TestVerifyToken(object):
     def test_invalid_signature(self, jwks, priv_key):
         now = (datetime.utcnow() - datetime(1970, 1, 1))
@@ -36,7 +37,7 @@ class TestVerifyToken(object):
 
         jwks['keys'][0]['kid'] = 'invalid'
         with pytest.raises(JsonApiException):
-            util.verify_token(token, jwks)
+            util.verify_token(token)
 
     def test_invalid_audience(self, jwks, priv_key):
         claims = {
@@ -46,7 +47,7 @@ class TestVerifyToken(object):
         token = generate_jwt(claims, priv_key)
 
         with pytest.raises(JsonApiException):
-            util.verify_token(token, jwks)
+            util.verify_token(token)
 
     def test_invalid_issuer(self, jwks, priv_key):
         claims = {
@@ -54,8 +55,8 @@ class TestVerifyToken(object):
             'aud': API_AUDIENCE
         }
         token = generate_jwt(claims, priv_key)
-        with pytest.raises(JsonApiException):
-            util.verify_token(token, jwks)
+        with pytest.raises(JsonApiException) as excinfo:
+            util.verify_token(token)
 
     def test_token_expired(self, jwks, priv_key):
         now = (datetime(1971, 1, 1) - datetime(1970, 1, 1))
@@ -70,4 +71,4 @@ class TestVerifyToken(object):
         }
         token = generate_jwt(claims, priv_key)
         with pytest.raises(JsonApiException):
-            util.verify_token(token, jwks)
+            util.verify_token(token)
