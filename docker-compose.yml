@@ -10,7 +10,7 @@ services:
             - MYSQL_HOST=mysql
             - MYSQL_USER=jenkins
             - MYSQL_PASSWORD=jenkins
-            - MEMCACHED_HOST=memcached-test
+            - MEMCACHED_HOST=memcached
             - MEMCACHED_PORT=11211
             - API_URL=http://benwaonline-api
             - API_PORT=420
