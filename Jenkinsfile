@@ -11,9 +11,10 @@ pipeline {
 
         stage('Test image') {
             steps {
-                // sh 'docker run --name memcached -d -p 11212:11212 memcached -p 11212'
+                sh 'docker run --name memcached -d -p 11211 --network=jenkins-testing memcached'
                 sh 'docker-compose run testing'
                 sh 'sed "s/\\/testing\\///" work_dir/coverage.xml > coverage.xml'
+
                 step([$class: 'CoberturaPublisher', autoUpdateHealth: false,
                 autoUpdateStability: false, coberturaReportFile: 'coverage.xml',
                 failNoReports: false, failUnhealthy: false, failUnstable: false,
@@ -24,7 +25,7 @@ pipeline {
     }
     post {
         always {
-            // sh 'docker rm --force memcached'
+            sh 'docker rm --force memcached'
             sh 'rm -rf work_dir'
         }
         success {
