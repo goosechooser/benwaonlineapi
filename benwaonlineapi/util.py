@@ -25,7 +25,7 @@ def verify_token(token):
             issuer=cfg.ISSUER
         )
     except jwt.ExpiredSignatureError as err:
-        handle_expired_signature(unverified_header, err)
+        handle_expired_signature(token, err)
     except jwt.JWTClaimsError as err:
         handle_claims(err)
     except exceptions.JWTError as err:
@@ -57,9 +57,9 @@ def rsa_from_jwks(key):
         "e": key["e"]
     }
 
-def handle_expired_signature(unverified_header, err):
+def handle_expired_signature(token, err):
     """Handles tokens with expired signatures."""
-    msg = 'Token provided by {} has expired'.format(unverified_header.get('sub', 'sub not found'))
+    msg = 'Token provided by {} has expired'.format(jwt.get_unverified_claims(token).get('sub', 'sub not found'))
     current_app.logger.info(msg)
     raise JsonApiException(
         detail='{0}'.format(err),
