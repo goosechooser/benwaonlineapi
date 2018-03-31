@@ -51,7 +51,7 @@ def model_query(session, model, view_kwargs, query_):
 
     return query_
 
-class BaseList(CachedList):
+class BaseList(ResourceList):
     view_kwargs = True
 
     @processors.authenticate
@@ -80,7 +80,7 @@ class BaseList(CachedList):
 
         return query_
 
-class BaseDetail(CachedDetail):
+class BaseDetail(ResourceDetail):
     @processors.authenticate
     def before_patch(self, *args, **kwargs):
         pass
