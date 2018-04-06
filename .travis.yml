@@ -8,6 +8,7 @@ python:
 env:
   global:
     - FLASK_CONFIG=test
+    - MYSQL_HOST=127.0.0.1
     - MEMCACHED_HOST=localhost
     - MEMCACHED_PORT=11211
 
