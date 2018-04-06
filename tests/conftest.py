@@ -1,9 +1,14 @@
-import pytest
+import sys
+import os
 import json
+import pytest
 
 from benwaonlineapi import create_app
 from benwaonlineapi import models
 from benwaonlineapi.database import db as _db
+from benwaonlineapi.cache import cache as _cache
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
 @pytest.fixture(scope='session')
 def jwks():
@@ -26,6 +31,11 @@ def app():
 
     with _app.app_context():
         yield _app
+
+@pytest.fixture(scope='session')
+def cache():
+    yield _cache
+    _cache.flush_all()
 
 @pytest.fixture(scope='session')
 def db(app):

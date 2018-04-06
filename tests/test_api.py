@@ -6,7 +6,7 @@ import requests_mock
 from flask import url_for, current_app
 from benwaonlineapi import schemas, models
 from marshmallow import pprint
-from helpers import generate_jwt
+import utils
 
 headers = {'Accept': 'application/vnd.api+json',
                 'Content-Type': 'application/vnd.api+json'}
@@ -59,7 +59,7 @@ def test_authenticate_invalid_audience(client, jwks):
         'aud': 'invalid'
     }
 
-    token = generate_jwt(claims)
+    token = utils.generate_jwt(claims)
     headers['Authorization'] = 'Bearer ' + token
     post = schemas.PostSchema().dumps({
         "id": "420"
@@ -78,7 +78,7 @@ def test_authenticate_invalid_issuer(client, jwks):
         'aud': API_AUDIENCE,
     }
 
-    token = generate_jwt(claims)
+    token = utils.generate_jwt(claims)
     headers['Authorization'] = 'Bearer ' + token
     post = schemas.PostSchema().dumps({
         "id": "420"
@@ -102,7 +102,7 @@ def test_authenticate_expired_token(client, jwks):
         'exp': exp_at.total_seconds()
     }
 
-    token = generate_jwt(claims)
+    token = utils.generate_jwt(claims)
     headers['Authorization'] = 'Bearer ' + token
     post = schemas.PostSchema().dumps({
         "id": "420"
@@ -128,7 +128,7 @@ def test_authenticate(client):
         'exp': exp_at.total_seconds()
     }
 
-    token = generate_jwt(claims)
+    token = utils.generate_jwt(claims)
     headers['Authorization'] = 'Bearer ' + token
     user = schemas.UserSchema().dumps({
         "id": "420",
@@ -168,7 +168,7 @@ def test_create_post_with_tags(client):
         'exp': exp_at.total_seconds()
     }
 
-    token = generate_jwt(claims)
+    token = utils.generate_jwt(claims)
     headers['Authorization'] = 'Bearer ' + token
     tag = schemas.TagSchema().dumps({
         'id': '1',
@@ -223,7 +223,7 @@ def test_create_post_with_tags(client):
 #         'exp': exp_at.total_seconds()
 #     }
 
-#     token = generate_jwt(claims)
+#     token = utils.generate_jwt(claims)
 #     headers['Authorization'] = 'Bearer ' + token
 
 #     with requests_mock.Mocker() as mock:

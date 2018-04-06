@@ -1,16 +1,13 @@
-# A smarter person than I could figure out how to generalize a lot of these methods
-
-from jose import jwt
 from flask import request, current_app
 from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationship
 from flask_rest_jsonapi.exceptions import ObjectNotFound
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.inspection import inspect
 
 from benwaonlineapi.database import db
 from benwaonlineapi import schemas
 from benwaonlineapi import models
 from benwaonlineapi.resources import processors
+from benwaonlineapi.resources.CachedResource import CachedDetail, CachedList
 
 #source - https://stackoverflow.com/questions/11668355/sqlalchemy-get-model-from-table-name-this-may-imply-appending-some-function-to
 def get_class_by_tablename(tablename):
@@ -29,17 +26,20 @@ def split_type_id(view_kwargs):
     for k, v in view_kwargs.items():
         splits = k.split('_')
         try:
-            temp['type_'] = splits[0]
+            temp['type'] = splits[0]
             temp['id'] = v
         except KeyError:
             pass
     try:
-        view_kwargs['type_'] = temp['type_']
+        view_kwargs['type'] = temp['type']
         view_kwargs['id'] = temp['id']
     except KeyError:
         pass
 
-def model_query(session, model, id_, type_, attrs, query_):
+def model_query(session, model, view_kwargs, query_):
+    id_ = view_kwargs.get('id')
+    type_ = view_kwargs.get('type')
+
     try:
         session.query(model).filter_by(id=id_).one()
     except NoResultFound:
@@ -47,10 +47,7 @@ def model_query(session, model, id_, type_, attrs, query_):
             {'parameter': 'id'}, "{}: {} not found".format(type_, id_))
     else:
         subq = session.query(model).subquery()
-        attr_name = attrs.get(type_, type_)
-
-        query_ = query_.join(
-            subq, attr_name, aliased=True).filter(model.id == id_)
+        query_ = query_.join(subq, view_kwargs.get('attr_name'), aliased=True).filter(model.id == id_)
 
     return query_
 
@@ -73,13 +70,13 @@ class BaseList(ResourceList):
         Returns:
             A query I presume.
         '''
-        id_ = view_kwargs.get('id')
-        type_ = view_kwargs.get('type_')
+        type_ = view_kwargs.get('type')
         query_ = self.session.query(self.model)
 
         if type_:
             model = get_class_by_tablename(type_[:-1])
-            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
+            view_kwargs['attr_name'] = self.attrs.get(type_, type_)
+            query_ = model_query(self.session, model, view_kwargs, query_)
 
         return query_
 
@@ -118,13 +115,13 @@ class PostList(BaseList):
         Returns:
             A query I presume.
         '''
-        id_ = view_kwargs.get('id')
-        type_ = view_kwargs.get('type_')
+        type_ = view_kwargs.get('type')
         query_ = self.session.query(self.model)
 
         if type_:
             model = models.User if type_ == 'likes' else get_class_by_tablename(type_[:-1])
-            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
+            view_kwargs['attr_name'] = self.attrs.get(type_, type_)
+            query_ = model_query(self.session, model, view_kwargs, query_)
 
         return query_
 
@@ -220,13 +217,13 @@ class UserList(BaseList):
         Returns:
             A query I presume.
         '''
-        id_ = view_kwargs.get('id')
-        type_ = view_kwargs.get('type_')
+        type_ = view_kwargs.get('type')
         query_ = self.session.query(self.model)
 
         if type_:
             model = models.Post if type_ == 'likes' else get_class_by_tablename(type_[:-1])
-            query_ = model_query(self.session, model, id_, type_, self.attrs, query_)
+            view_kwargs['attr_name'] = self.attrs.get(type_, type_)
+            query_ = model_query(self.session, model, view_kwargs, query_)
 
         return query_
 
@@ -391,7 +388,7 @@ class CommentDetail(BaseDetail):
             A query I presume.
         '''
         id_ = view_kwargs.get('id')
-        type_ = view_kwargs.get('type_')
+        type_ = view_kwargs.get('type')
         query_ = self.session.query(self.model)
 
         if type_:

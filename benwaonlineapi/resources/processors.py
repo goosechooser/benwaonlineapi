@@ -1,25 +1,11 @@
 from functools import wraps
-# import json
 from jose import jwt
 
 from flask import request
-# from pymemcache.client.murmur3 import murmur3_32
 from flask_rest_jsonapi.exceptions import JsonApiException
 from benwaonlineapi import models
 from benwaonlineapi.cache import cache
 from benwaonlineapi.util import verify_token, get_jwks, has_scope
-
-# def get_cache_key():
-#     return str(murmur3_32(request.path + request.query_string.decode("utf-8")))
-
-# def cache_preprocessor(**kwargs):
-#     key = get_cache_key()
-#     if cache.get(key):
-#         raise JsonApiException(description=cache.get(key), code=200)
-
-# def cache_postprocessor(result, **kwargs):
-#     cache.set(get_cache_key(), json.dumps(result), expire=60)
-
 
 def get_token_header():
     auth = request.headers.get('authorization', None)
@@ -48,8 +34,7 @@ def get_token_header():
 def _authenticate(*args, **kwargs):
     try:
         token = get_token_header()
-        jwks = get_jwks()
-        verify_token(token, jwks)
+        verify_token(token)
     except JsonApiException as err:
         raise err
 
