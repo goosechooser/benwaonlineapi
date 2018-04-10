@@ -205,8 +205,8 @@ class TestResourceRelationshipSuite(object):
         assert response.status_code == 200
 
     @pytest.mark.parametrize("id_, has_errors", [
-        (1, False),
-        (420, True)
+        ("1", False),
+        ("420", True)
     ])
     def test_schema_format(self, client, resource, id_, has_errors):
         response = client.get(resource.base_url.format(id=id_))
