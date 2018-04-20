@@ -8,24 +8,21 @@ from benwaonlineapi.database import db, migrate
 from benwaonlineapi.manager import manager
 from benwaonlineapi import models
 
-def setup_logger_handlers(loggers):
-    fh = logging.FileHandler(__name__ +'_debug.log')
-    fh.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s '
-        '[in %(pathname)s:%(lineno)d]'
+def setup_logger_handlers(app):
+    sh = logging.StreamHandler()
+    sh.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s '
+    '[in %(pathname)s:%(lineno)d]'
     ))
-    fh.setLevel(logging.DEBUG)
-    for logger in loggers:
-        logger.addHandler(fh)
-
-    return
+    sh.setLevel(logging.DEBUG)
+    app.logger.addHandler(sh)
 
 def create_app(config_name=None):
     """
     Returns the Flask app.
     """
     app = Flask(__name__)
-    setup_logger_handlers([app.logger, logging.getLogger('gunicorn.error')])
+    setup_logger_handlers(app)
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)

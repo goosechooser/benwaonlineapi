@@ -3,7 +3,7 @@ from marshmallow_jsonapi import fields
 from marshmallow_jsonapi.flask import Schema, Relationship
 
 class PreviewSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     filepath = fields.Str()
     created_on = fields.DateTime()
 
@@ -14,7 +14,7 @@ class PreviewSchema(Schema):
         self_view_many = 'api.previews_list'
 
 class ImageSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     filepath = fields.Str()
     created_on = fields.DateTime()
 
@@ -25,7 +25,7 @@ class ImageSchema(Schema):
         self_view_many = 'api.images_list'
 
 class CommentSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     content = fields.String()
     created_on = fields.DateTime()
     poster = fields.String()
@@ -57,7 +57,7 @@ class CommentSchema(Schema):
     )
 
 class UserSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     username = fields.String()
     created_on = fields.DateTime()
     user_id = fields.String()
@@ -101,7 +101,7 @@ class UserSchema(Schema):
     )
 
 class PostSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     title = fields.String()
     created_on = fields.DateTime()
 
@@ -173,12 +173,12 @@ class PostSchema(Schema):
     )
 
 class LikesSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     class Meta:
         type_ = 'likes'
 
 class TagSchema(Schema):
-    id = fields.Int()
+    id = fields.String()
     name = fields.String()
     created_on = fields.DateTime()
     num_posts = fields.Int()
