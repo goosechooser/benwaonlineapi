@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from sqlalchemy import select, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from benwaonlineapi.database import db
 
@@ -78,8 +79,9 @@ class Tag(db.Model):
 
     @num_posts.expression
     def num_posts(cls):
-        db.session.query(cls.posts, db.func.count(
-            posts_tags.c.posts_id)).where(posts_tags.c.tags_id == id)
+        return select([func.sum(posts_tags.c.posts_id)]).\
+            where(posts_tags.c.tags_id == cls.id).\
+            label('num_posts')
 
     def __repr__(self):
         return '<Tag: {}>'.format(self.name)
