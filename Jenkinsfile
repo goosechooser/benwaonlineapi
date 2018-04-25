@@ -11,8 +11,8 @@ pipeline {
 
         stage('Test image') {
             steps {
-                sh 'docker run -d -p 6379 --network=jenkins-testing redis:alpine'
-                sh 'CID=$(docker ps --latest --quiet)'
+                // sh 'docker run -d -p 6379 --network=jenkins-testing redis:alpine'
+                sh 'docker-compose run redis'
                 sh 'docker-compose run testing'
                 sh 'sed "s/\\/testing\\///" work_dir/coverage.xml > coverage.xml'
 
@@ -26,7 +26,7 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rm --force $CID'
+            sh 'docker-compose rm --force redis'
             sh 'rm -rf work_dir'
         }
         success {

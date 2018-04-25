@@ -17,7 +17,11 @@ services:
         command: py.test --cov-config .coveragerc --cov=benwaonlineapi --cov-report xml tests/
         volumes:
             - ./work_dir:/testing/reports
-
+    redis:
+        image: redis:alpine
+        ports:
+            - 6379:6379
+            
 networks:
   default:
     external:
