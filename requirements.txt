@@ -7,6 +7,7 @@ click==6.7
 cryptography==2.1.4
 ecdsa==0.13
 Flask==0.12.2
+flask-caching==1.4.0
 Flask-Login==0.4.0
 flask-migrate==2.1.1
 Flask-REST-JSONAPI==0.15.0
@@ -23,12 +24,12 @@ marshmallow-jsonapi==0.16.0
 mimerender==0.6.0
 pycparser==2.18
 pycryptodome==3.5.1
-pymemcache==1.4.4
 PyMySQL==0.7.11
 python-dateutil==2.6.1
 python-editor==1.0.3
 python-jose==2.0.2
 python-mimeparse==1.6.0
+redis==2.10.6
 requests==2.18.4
 six==1.11.0
 SQLAlchemy==1.2.2

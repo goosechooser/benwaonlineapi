@@ -4,6 +4,7 @@ from flask import Flask, g, url_for, request, flash, redirect, jsonify
 from sqlalchemy import create_engine
 
 from benwaonlineapi.config import app_config
+from benwaonlineapi.cache import cache
 from benwaonlineapi.database import db, migrate
 from benwaonlineapi.manager import manager
 from benwaonlineapi import models
@@ -28,6 +29,7 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     manager.init_app(app)
+    cache.init_app(app)
 
     @app.cli.command()
     def initdb():

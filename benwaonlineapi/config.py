@@ -14,8 +14,8 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     API_AUDIENCE = 'api audience'
     ISSUER = 'issuer'
-    MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', VAGRANT_IP)
-    MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
+    REDIS_HOST = os.getenv('REDIS_HOST', VAGRANT_IP)
+    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 
 class DevConfig(Config):
     DB_NAME = os.getenv('DB_NAME', 'benwaonline')
@@ -31,7 +31,6 @@ class TestConfig(Config):
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
     TESTING = True
     WTF_CSRF_ENABLED = False
-    MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11212))
 
 class ProdConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
@@ -47,6 +46,8 @@ class ProdConfig(Config):
     API_AUDIENCE = 'https://benwa.online/api'
     AUTH_URL = '{}:{}'.format(os.getenv('AUTH_URL'), os.getenv('AUTH_PORT'))
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
+    REDIS_HOST = os.getenv('REDIS_HOST')
+    REDIS_PORT = int(os.getenv('REDIS_PORT', 666))
 
 app_config = {
     'dev': DevConfig,

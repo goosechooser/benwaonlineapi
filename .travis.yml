@@ -10,13 +10,12 @@ env:
     - FLASK_CONFIG=test
     - MYSQL_HOST=127.0.0.1
     - MYSQL_PASSWORD=
-    - MEMCACHED_HOST=localhost
-    - MEMCACHED_PORT=11211
+    - REDIS_HOST=localhost
+    - REDIS_PORT=6379
 
 services:
-  - docker
   - mysql
-  - memcached
+  - redis-server
 
 before_install:
   - mysql -u root -e 'CREATE DATABASE benwaonlineapi_test;'
@@ -29,6 +28,3 @@ install:
 
 script:
   - pytest tests
-
-after_success:
-  - docker build -t benwaonline-api .

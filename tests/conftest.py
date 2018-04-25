@@ -35,7 +35,7 @@ def app():
 @pytest.fixture(scope='session')
 def cache():
     yield _cache
-    _cache.flush_all()
+    _cache.clear()
 
 @pytest.fixture(scope='session')
 def db(app):
