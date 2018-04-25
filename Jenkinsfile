@@ -11,8 +11,7 @@ pipeline {
 
         stage('Test image') {
             steps {
-                // sh 'docker run -d -p 6379 --network=jenkins-testing redis:alpine'
-                sh 'docker-compose run redis'
+                sh 'docker-compose run -d redis'
                 sh 'docker-compose run testing'
                 sh 'sed "s/\\/testing\\///" work_dir/coverage.xml > coverage.xml'
 
