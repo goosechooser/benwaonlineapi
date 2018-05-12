@@ -8,6 +8,7 @@ class Config(object):
         os.getenv('MYSQL_PORT')
     )
     DB_NAME = os.getenv('DB_NAME')
+    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     API_AUDIENCE = 'api audience'
     ISSUER = 'issuer'
