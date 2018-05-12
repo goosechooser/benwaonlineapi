@@ -3,7 +3,6 @@ pipeline {
     stages {
         stage('Build image') {
             steps {
-                sh 'find . -name "*.pyc" -delete'
                 sh 'mkdir work_dir'
                 sh 'docker-compose build testing'
             }
@@ -11,7 +10,7 @@ pipeline {
 
         stage('Test image') {
             steps {
-                sh 'docker-compose run -d redis'
+                sh 'docker run --name redis -d -p 6379 --network=jenkins-testing redis:alpine'
                 sh 'docker-compose run testing'
                 sh 'sed "s/\\/testing\\///" work_dir/coverage.xml > coverage.xml'
 

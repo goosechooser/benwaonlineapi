@@ -1,15 +1,12 @@
 """
 Contains any utility functions used by processors or the benwaonline frontend.
 """
-import os
 import requests
 from jose import jwt, exceptions
 from flask import current_app
 from flask_rest_jsonapi.exceptions import JsonApiException
-from benwaonlineapi.config import app_config
 from benwaonlineapi.cache import cache
 
-cfg = app_config[os.getenv('FLASK_CONFIG')]
 ALGORITHMS = ['RS256']
 
 def verify_token(token):
@@ -21,8 +18,8 @@ def verify_token(token):
             token,
             rsa_key,
             algorithms=ALGORITHMS,
-            audience=cfg.API_AUDIENCE,
-            issuer=cfg.ISSUER
+            audience=current_app.config['API_AUDIENCE'],
+            issuer=current_app.config['ISSUER']
         )
     except jwt.ExpiredSignatureError as err:
         handle_expired_signature(token, err)

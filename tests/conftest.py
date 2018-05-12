@@ -3,6 +3,9 @@ import os
 import json
 import pytest
 
+from flask.cli import load_dotenv
+load_dotenv()
+
 from benwaonlineapi import create_app
 from benwaonlineapi import models
 from benwaonlineapi.database import db as _db
@@ -27,7 +30,7 @@ def priv_key():
 
 @pytest.fixture(scope='session')
 def app():
-    _app = create_app('test')
+    _app = create_app('testing')
 
     with _app.app_context():
         yield _app
