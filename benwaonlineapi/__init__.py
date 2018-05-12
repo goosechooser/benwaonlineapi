@@ -23,13 +23,24 @@ def create_app(config_name=None):
     Returns the Flask app.
     """
     app = Flask(__name__)
-    setup_logger_handlers(app)
+    if not config_name:
+        config_name = os.getenv('FLASK_ENV')
+
+    if config_name == 'production':
+        setup_logger_handlers(app)
+
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)
     migrate.init_app(app, db)
     manager.init_app(app)
-    cache.init_app(app)
+    cache.init_app(app, config={
+        'CACHE_TYPE': 'redis',
+        'CACHE_DEFAULT_TIMEOUT': 5,
+        'CACHE_REDIS_HOST': os.getenv('REDIS_HOST'),
+        'CACHE_REDIS_PORT': os.getenv('REDIS_PORT'),
+        'CACHE_KEY_PREFIX': 'benwaonline-api:'
+    })
 
     @app.cli.command()
     def initdb():
