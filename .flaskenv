@@ -17,5 +17,5 @@ REDIS_HOST=${VAGRANT_IP}
 REDIS_PORT=6379
 
 # benwaonline-api
-AUTH_URL=http://127.0.0.1
+AUTH_HOST=http://127.0.0.1
 AUTH_PORT=5002

@@ -14,7 +14,7 @@ class Config(object):
     ISSUER = 'issuer'
     REDIS_HOST = os.getenv('REDIS_HOST')
     REDIS_PORT = os.getenv('REDIS_PORT')
-    AUTH_URL = '{}:{}'.format(os.getenv('AUTH_URL'), os.getenv('AUTH_PORT', ''))
+    AUTH_URL = '{}:{}'.format(os.getenv('AUTH_HOST'), os.getenv('AUTH_PORT', ''))
     JWKS_URL = AUTH_URL + '/.well-known/jwks.json'
 
 class DevConfig(Config):
