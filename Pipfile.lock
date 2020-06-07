@@ -256,14 +256,7 @@
             "index": "pypi",
             "version": "==1.1.1"
         },
-        "marshmallow": {
-            "hashes": [
-                "sha256:958e6640bec9a04ca15701e3d99b12c4269d0f43be596f00eeca1f2baf530abc",
-                "sha256:d072db26baf2b0de886ad58f12360610d7bdea439e975a0179d1da82340c4f72"
-            ],
-            "index": "pypi",
-            "version": "==2.18.0"
-        },
+     
         "marshmallow-jsonapi": {
             "hashes": [
                 "sha256:0d5567ad98d834149e4329d244732bda0185dc51b5fef0ec7dc58e9d1d7c0493",

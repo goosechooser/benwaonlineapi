@@ -2,6 +2,9 @@ from marshmallow import post_load, pre_dump
 from marshmallow_jsonapi import fields
 from marshmallow_jsonapi.flask import Schema, Relationship
 
+# ChangedInMarshmallow3Warning: strict=False is not recommended. In marshmallow 3.0, schemas will always be strict. See https://marshmallow.readthedocs.io/en/latest/upgrading.html#schemas-are-always-strict
+#     ChangedInMarshmallow3Warning
+
 class PreviewSchema(Schema):
     id = fields.String()
     filepath = fields.Str()
